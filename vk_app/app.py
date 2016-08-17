@@ -40,9 +40,6 @@ class App:
         self.api_version = api_version
         self.api_session = API(self.session, v=self.api_version)
 
-    def __repr__(self):
-        return "VK application with id '{}' authorized by user '{}'".format(self.user_login, self.app_id)
-
     def get_items(self, method: str, params: dict):
         """Get VK countable objects (wall posts, audios, photo albums, photos, videos, etc.)
 
