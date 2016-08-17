@@ -14,13 +14,13 @@ class App:
 
         :param app_id: your VK application identifier
 
-        full list of your VK applications available at https://new.vk.com/apps?act=manage
+        full list of your VK applications available at https://vk.com/apps?act=manage
         :param user_login: email address or telephone number
         :param user_password:
         :param scope: required permissions separated by colons
         for example: "photos,audio" will give access to user's photos and audio files
 
-        more info at https://new.vk.com/dev/permissions
+        more info at https://vk.com/dev/permissions
 
         :param access_token: special access key which needed to run most of VK API methods
 
@@ -53,7 +53,7 @@ class App:
         {owner_id: 11283070, album_id: 'saved', offset: 300, count: 1000}
         to get saved photos from 300 to 1300 of user with id 11283070 in chronological order
 
-        more info about `method_name` parameters at https://new.vk.com/dev/`method_name`
+        more info about `method_name` parameters at https://vk.com/dev/`method_name`
         :type params: dict
         :return:
         """
