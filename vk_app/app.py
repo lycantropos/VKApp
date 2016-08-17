@@ -31,12 +31,14 @@ class App:
         """
         if access_token:
             self.session = Session(access_token)
+            self.access_token = access_token
         else:
             self.app_id = app_id
             self.user_login = user_login
             self.user_password = user_password
             self.scope = scope
             self.session = AuthSession(**self.__dict__)
+            self.access_token = self.session.access_token
         self.api_version = api_version
         self.api_session = API(self.session, v=self.api_version)
 
