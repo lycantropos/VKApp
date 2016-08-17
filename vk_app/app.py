@@ -6,7 +6,7 @@ from vk_app.config import VK_SCRIPT_GET_ALL
 
 
 class App:
-    def __init__(self, app_id: str, user_login: str, user_password: str, scope: str, access_token='',
+    def __init__(self, app_id='', user_login='', user_password='', scope='', access_token='',
                  api_version='5.53'):
         """Creates instance of our application for working with VK API.
         You have to specify authentication data for app (`app_id`) and user (`user_login`, `user_password`, `scope`)
