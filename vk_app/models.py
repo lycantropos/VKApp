@@ -23,7 +23,7 @@ def download_vk_objects(vk_objects: list, save_path: str):
 
 
 class VKObject:
-    def download(self):
+    def download(self, save_path: str):
         """Must be overridden by inheritors"""
 
     @classmethod
