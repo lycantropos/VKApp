@@ -1,9 +1,9 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='VKApp',
     version='0.0.1',
-    packages=['vk_app'],
+    packages=find_packages(),
     install_requires=[
         'vk==2.0.2',
     ],
