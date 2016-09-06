@@ -44,7 +44,7 @@ class VKObject:
         Written assuming that inheritor class called after specified VK object,
         e. g. Photo, Audio, Video
         """
-        return cls.__class__.__name__.lower()
+        return cls.__name__.lower()
 
     @classmethod
     def get_vk_objects_from_raw(cls, raw_vk_objects: list) -> list:
