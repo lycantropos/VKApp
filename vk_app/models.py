@@ -17,19 +17,10 @@ def download_vk_objects(vk_objects: list, save_path: str):
 
             vk_object.download(save_path)
 
-            logging.info('{} {} of {} has been downloaded'.format(ordinal(ind + 1), vk_object, len(vk_objects)))
+            logging.info("{} of {}: {} has been downloaded".format(ind + 1, len(vk_objects), vk_object))
         except OSError as e:
             # e.g. raises when there is no vk_object found by link on the server anymore
             logging.exception(e)
-
-
-ORDINAL_RULES = {1: 'st', 2: 'nd', 3: 'rd'}
-ORDINAL_RULES_EXCEPTIONS = {11, 12, 13}
-
-
-def ordinal(n: int) -> str:
-    suffix = ORDINAL_RULES[n % 10] if n % 10 in ORDINAL_RULES and n not in ORDINAL_RULES_EXCEPTIONS else 'th'
-    return str(n) + suffix
 
 
 class VKObject:
