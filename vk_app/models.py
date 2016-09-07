@@ -7,7 +7,8 @@ MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
 
 def download_vk_objects(vk_objects: list, save_path: str):
     last_download_time = datetime.utcnow()
-    for vk_object in vk_objects:
+    for ind, vk_object in enumerate(vk_objects):
+        logging.info(vk_object)
         try:
             # we can send request to VK servers only 3 times a second
             time_elapsed_since_last_download = (datetime.utcnow() - last_download_time).total_seconds()
@@ -16,9 +17,9 @@ def download_vk_objects(vk_objects: list, save_path: str):
             last_download_time = datetime.utcnow()
 
             vk_object.download(save_path)
+            logging.info('{} from {}'.format(ind, len(vk_objects)))
         except OSError as e:
             # e.g. raises when there is no vk_object found by link on the server anymore
-            logging.info(vk_object)
             logging.exception(e)
 
 
