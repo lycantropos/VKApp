@@ -17,7 +17,7 @@ def download_vk_objects(vk_objects: list, save_path: str):
             last_download_time = datetime.utcnow()
 
             vk_object.download(save_path)
-            logging.info('{} from {}'.format(ind, len(vk_objects)))
+            logging.info('{} from {}'.format(ind + 1, len(vk_objects)))
         except OSError as e:
             # e.g. raises when there is no vk_object found by link on the server anymore
             logging.exception(e)
