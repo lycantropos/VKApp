@@ -34,4 +34,5 @@ class LoggingConfig:
 
     def set_log_config_file_path(self):
         log_config_full_path = os.path.join(self.base_dir, self.logging_config_path)
-        logging.config.fileConfig(log_config_full_path, defaults={'logfilename': self.logs_path})
+        logs_full_path = os.path.join(self.base_dir, self.logs_path)
+        logging.config.fileConfig(log_config_full_path, defaults={'logfilename': logs_full_path})
