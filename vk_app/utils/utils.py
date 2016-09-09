@@ -5,6 +5,9 @@ from datetime import datetime
 from time import sleep
 from urllib.request import urlopen
 
+__all__ = ['make_periodic', 'get_year_month_date', 'get_raw_vk_objects_from_posts',
+           'download_vk_objects', 'download', 'find_file', 'check_dir', 'get_valid_folders']
+
 
 def make_periodic(delay: int):
     """Decorator with parameter for making functions periodically launched
@@ -93,7 +96,3 @@ def get_valid_folders(*folders) -> list:
     valid_folders = filter(None, folders)
     valid_folders = list(valid_folders)
     return valid_folders
-
-
-__all__ = [make_periodic, get_year_month_date, get_raw_vk_objects_from_posts,
-           download_vk_objects, download, find_file, check_dir, get_valid_folders]
