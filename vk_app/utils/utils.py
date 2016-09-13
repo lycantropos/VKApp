@@ -70,7 +70,7 @@ def download(link: str, save_path: str):
                 with open(save_path, 'wb') as out:
                     image_content = response.read()
                     out.write(image_content)
-        except ValueError as e:
+        except (ValueError, OSError) as e:
             logging.exception(e)
 
 
