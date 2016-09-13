@@ -9,17 +9,22 @@ class VKObject:
         file_name = self.get_file_name()
         old_file_path = find_file(file_name, path)
         if old_file_path:
-            file_dir = self.get_file_dir(path)
+            subfolders = self.get_file_subfolders()
+            file_dir = os.path.join(path, *subfolders)
             file_path = os.path.join(file_dir, file_name)
             shutil.move(old_file_path, file_path)
         else:
             self.download(path)
 
-    def download(self, save_path: str):
+    def download(self, path: str):
         """Must be overridden by inheritors"""
 
-    def get_file_dir(self, path: str) -> str:
-        """Must be overridden by inheritors"""
+    def get_file_subfolders(self) -> list:
+        """
+        Should return list of `str` subfolders names for file to be located at
+
+        Must be overridden by inheritors
+        """
 
     def get_file_name(self) -> str:
         """Must be overridden by inheritors"""

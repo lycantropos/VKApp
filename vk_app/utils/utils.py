@@ -87,9 +87,14 @@ def find_file(name, path):
 
 
 def check_dir(folder_path: str, *subfolders):
-    full_path = os.path.join(folder_path, *subfolders)
-    if not os.path.exists(full_path):
-        os.mkdir(full_path)
+    path = folder_path
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    for ind, subfolder in enumerate(subfolders):
+        path = os.path.join(folder_path, subfolder)
+        if not os.path.exists(path):
+            os.mkdir(path)
 
 
 def get_valid_folders(*folders) -> list:
