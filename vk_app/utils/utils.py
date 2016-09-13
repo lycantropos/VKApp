@@ -70,8 +70,8 @@ def download(link: str, save_path: str):
                 with open(save_path, 'wb') as out:
                     image_content = response.read()
                     out.write(image_content)
-        except (ValueError, OSError) as e:
-            logging.exception(e)
+        except (ValueError, OSError):
+            logging.exception(save_path)
 
 
 def get_year_month_date(date_time: datetime, sep='.') -> str:
