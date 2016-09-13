@@ -6,7 +6,7 @@ from time import sleep
 from urllib.request import urlopen
 
 __all__ = ['make_periodic', 'get_year_month_date', 'get_raw_vk_objects_from_posts',
-           'download_vk_objects', 'download', 'find_file', 'check_dir', 'get_valid_folders']
+           'download_vk_objects', 'download', 'find_file', 'check_dir', 'get_valid_dirs']
 
 
 def make_periodic(delay: int):
@@ -86,18 +86,18 @@ def find_file(name, path):
     return None
 
 
-def check_dir(folder_path: str, *subfolders):
-    path = folder_path
+def check_dir(path_dir: str, *subdirs):
+    path = path_dir
     if not os.path.exists(path):
         os.mkdir(path)
 
-    for ind, subfolder in enumerate(subfolders):
-        path = os.path.join(folder_path, subfolder)
+    for ind, subdir in enumerate(subdirs):
+        path = os.path.join(path_dir, subdir)
         if not os.path.exists(path):
             os.mkdir(path)
 
 
-def get_valid_folders(*folders) -> list:
-    valid_folders = filter(None, folders)
-    valid_folders = list(valid_folders)
-    return valid_folders
+def get_valid_dirs(*dirs) -> list:
+    valid_dirs = filter(None, dirs)
+    valid_dirs = list(valid_dirs)
+    return valid_dirs
