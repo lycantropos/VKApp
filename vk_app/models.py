@@ -1,17 +1,20 @@
 import os
 import shutil
 
-from vk_app.utils import find_file
+from vk_app.utils import find_file, check_dir
 
 
 class VKObject:
-    def synchronize(self, path):
+    def synchronize(self, path: str):
         file_name = self.get_file_name()
         old_file_path = find_file(file_name, path)
         if old_file_path:
-            subdirs = self.get_file_subdirs()
-            file_dir = os.path.join(path, *subdirs)
+            file_subdirs = self.get_file_subdirs()
+            check_dir(path, *file_subdirs)
+
+            file_dir = os.path.join(path, *file_subdirs)
             file_path = os.path.join(file_dir, file_name)
+
             shutil.move(old_file_path, file_path)
         else:
             self.download(path)
