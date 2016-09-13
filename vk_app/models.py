@@ -1,5 +1,21 @@
+import shutil
+
+from vk_app.utils import find_file
+
+
 class VKObject:
+    def synchronize(self, path):
+        file_name = self.get_file_name()
+        old_file_name = find_file(file_name, path)
+        if old_file_name:
+            shutil.move(old_file_name, file_name)
+        else:
+            self.download(path)
+
     def download(self, save_path: str):
+        """Must be overridden by inheritors"""
+
+    def get_file_name(self) -> str:
         """Must be overridden by inheritors"""
 
     @classmethod
@@ -7,6 +23,13 @@ class VKObject:
         """
         For elements of attachments (such as VK photo, audio objects) should return their key in attachment object
         e.g. for VK photo object should return 'photo', for VK audio object should return 'audio' and etc.
+        """
+
+    @classmethod
+    def info_fields(cls) -> list:
+        """
+        Should return list of VK object's fields names which should be updated in database
+        if its row already exists
         """
 
     @classmethod
