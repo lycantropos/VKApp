@@ -92,7 +92,7 @@ def check_dir(path_dir: str, *subdirs):
         os.mkdir(path)
 
     for ind, subdir in enumerate(subdirs):
-        path = os.path.join(path_dir, subdir)
+        path = os.path.join(path, subdir)
         if not os.path.exists(path):
             os.mkdir(path)
 
