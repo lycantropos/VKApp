@@ -1,6 +1,6 @@
 import os
 import shutil
-
+from typing import List
 from vk_app.utils import find_file, check_dir
 
 
@@ -28,9 +28,9 @@ class VKObject:
         file_path = os.path.join(path, *file_subdirs, file_name)
         return file_path
 
-    def get_file_subdirs(self) -> list:
+    def get_file_subdirs(self) -> List[str]:
         """
-        Should return list of `str` subdirectories names for file to be located at
+        Should return list of subdirectories names for file to be located at
 
         Must be overridden by inheritors
         """
@@ -51,14 +51,6 @@ class VKObject:
         Should return list of VK object's fields names which should be updated in database
         if its row already exists
         """
-
-    @classmethod
-    def get_vk_objects_from_raw(cls, raw_vk_objects: list) -> list:
-        vk_objects = list(
-            cls.from_raw(raw_vk_object)
-            for raw_vk_object in raw_vk_objects
-        )
-        return vk_objects
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> type:

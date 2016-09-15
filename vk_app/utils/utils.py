@@ -2,22 +2,19 @@ import logging
 import os
 import threading
 from datetime import datetime
-from time import sleep
+from typing import Callable
 from urllib.request import urlopen
 
-from vk_app import VKObject
-
-__all__ = ['make_periodic', 'get_year_month_date', 'get_raw_vk_objects_from_posts',
-           'download_vk_objects', 'download', 'find_file', 'check_dir', 'get_valid_dirs']
+__all__ = ['make_periodic', 'get_year_month_date', 'download', 'find_file', 'check_dir', 'get_valid_dirs']
 
 
-def make_periodic(delay: int) -> callable:
+def make_periodic(delay: int) -> Callable[[Callable], Callable]:
     """Decorator with parameter for making functions periodically launched
     :param delay: period in which function should be called, in seconds
     :return: periodic function
     """
 
-    def launch_periodically(function: callable) -> callable:
+    def launch_periodically(function: Callable) -> Callable:
         def launched_periodically(*args, **kwargs):
             timer = threading.Timer(delay, function, args=args, kwargs=kwargs)
             try:
@@ -31,39 +28,7 @@ def make_periodic(delay: int) -> callable:
     return launch_periodically
 
 
-def get_raw_vk_objects_from_posts(vk_object_class: VKObject, posts: list) -> list:
-    vk_object_name = vk_object_class.name()
-    raw_vk_objects = list(
-        attachment[vk_object_name]
-        for post in posts
-        if 'attachments' in post
-        for attachment in post['attachments']
-        if vk_object_name in attachment
-    )
-    return raw_vk_objects
-
-
-MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
-
-
-def download_vk_objects(vk_objects: list, save_path: str):
-    last_download_time = datetime.utcnow()
-    for ind, vk_object in enumerate(vk_objects):
-        try:
-            # we can send request to VK servers only 3 times a second
-            time_elapsed_since_last_download = (datetime.utcnow() - last_download_time).total_seconds()
-            if time_elapsed_since_last_download < MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS:
-                sleep(MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS - time_elapsed_since_last_download)
-            last_download_time = datetime.utcnow()
-
-            vk_object.download(save_path)
-
-            logging.info("{} of {}: {} has been downloaded".format(ind + 1, len(vk_objects), vk_object))
-        except OSError as e:
-            # e.g. raises when there is no vk_object found by link on the server anymore
-            logging.exception(e)
-
-
+@make_periodic(23)
 def download(link: str, save_path: str):
     if not os.path.exists(save_path):
         try:
@@ -81,7 +46,7 @@ def get_year_month_date(date_time: datetime, sep='.') -> str:
     return year_month_date
 
 
-def find_file(name, path):
+def find_file(name: str, path: str):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
