@@ -22,6 +22,12 @@ class VKObject:
     def download(self, path: str):
         """Must be overridden by inheritors"""
 
+    def get_file_path(self, path: str) -> str:
+        file_name = self.get_file_name()
+        file_subdirs = self.get_file_subdirs()
+        file_path = os.path.join(path, *file_subdirs, file_name)
+        return file_path
+
     def get_file_subdirs(self) -> list:
         """
         Should return list of `str` subdirectories names for file to be located at
