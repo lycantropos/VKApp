@@ -1,7 +1,7 @@
 import os
 import shutil
 from typing import List
-from vk_app.utils import find_file, check_dir
+from .utils import find_file, check_dir
 
 
 class VKObject:
