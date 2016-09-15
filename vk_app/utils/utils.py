@@ -47,6 +47,7 @@ class CallDelayer:
             def launched_with_delay(*args, **kwargs):
                 cls.last_call_time += delay_in_seconds
                 function(*args, **kwargs)
+                log_current_time()
                 wait_sec = cls.last_call_time - time.time()
                 logging.info('Wait {} until next call'.format(wait_sec))
                 cls.call_event.wait(wait_sec)
@@ -56,7 +57,6 @@ class CallDelayer:
         return launch_with_delay
 
 
-@CallDelayer.make_delayed(1)
 def log_current_time():
     current_time = datetime.utcnow()
     logging.info(current_time.strftime('%H:%M:%S:%f %d/%m/%Y'))
