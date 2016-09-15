@@ -1,3 +1,3 @@
 from .app import App
-from .models import VKObject
+from .models import MetaVKObject
 from .config import LoggingConfig
