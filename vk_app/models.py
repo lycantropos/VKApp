@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List
 
-from .utils import find_file, check_dir
+from vk_app.utils import find_file, check_dir
 
 
 class VKObject:

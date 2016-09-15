@@ -1,6 +1,6 @@
 from typing import List
 
-from models import VKObject
+from vk_app.models import VKObject
 
 __all__ = ['get_vk_objects_from_raw', 'get_raw_vk_objects_from_posts']
 

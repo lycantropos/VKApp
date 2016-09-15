@@ -2,7 +2,7 @@ import logging
 import os
 from urllib.request import urlopen
 
-from utils import CallDelayer
+from vk_app.utils import CallDelayer
 
 __MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
 
