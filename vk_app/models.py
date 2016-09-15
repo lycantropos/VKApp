@@ -12,6 +12,7 @@ class VKObject:
     """
     This class can be used for simple parsing
     """
+
     def synchronize(self, path: str):
         file_name = self.get_file_name()
         old_file_path = find_file(file_name, path)
@@ -53,30 +54,12 @@ class VKObject:
         """
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> type:
-        """Must be overridden by inheritors"""
-
-
-Base = declarative_base()
-
-
-class MappedVKObject(Base, VKObject):
-    __tablename__ = 'sample'
-
-    def as_dict(self) -> dict:
-        keys = list(
-            key
-            for key, value in self.__class__.__dict__.items()
-            if isinstance(value, InstrumentedAttribute)
-        )
-        return dict(
-            (key, getattr(self, key))
-            for key in keys
-        )
-
-    @classmethod
     def info_fields(cls) -> list:
         """
         Should return list of VK object's fields names which should be updated in database
         if its row already exists
         """
+
+    @classmethod
+    def from_raw(cls, raw_vk_object: dict) -> type:
+        """Must be overridden by inheritors"""
