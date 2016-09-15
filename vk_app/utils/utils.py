@@ -9,10 +9,6 @@ __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'c
 
 VoidFunction = Callable[..., None]
 
-logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                    level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 
 class CallRepeater:
     call_event = threading.Event()
@@ -52,7 +48,7 @@ class CallDelayer:
                 cls.last_call_time += delay_in_seconds
                 function(*args, **kwargs)
                 wait_sec = cls.last_call_time - time.time()
-                logger.info('Wait {} until next call'.format(wait_sec))
+                logging.info('Wait {} until next call'.format(wait_sec))
                 cls.call_event.wait(wait_sec)
 
             return launched_with_delay
@@ -61,9 +57,9 @@ class CallDelayer:
 
 
 @CallDelayer.make_delayed(1)
-def print_current_time():
+def log_current_time():
     current_time = datetime.utcnow()
-    logger.info(current_time.strftime('%H:%M:%S:%f %d/%m/%Y'))
+    logging.info(current_time.strftime('%H:%M:%S:%f %d/%m/%Y'))
 
 
 def get_year_month_date(date_time: datetime, sep='.') -> str:
@@ -98,4 +94,4 @@ def get_valid_dirs(*dirs) -> list:
 
 if __name__ == '__main__':
     for i in range(10):
-        print_current_time()
+        log_current_time()
