@@ -5,17 +5,19 @@ from datetime import datetime
 from time import sleep
 from urllib.request import urlopen
 
+from vk_app import VKObject
+
 __all__ = ['make_periodic', 'get_year_month_date', 'get_raw_vk_objects_from_posts',
            'download_vk_objects', 'download', 'find_file', 'check_dir', 'get_valid_dirs']
 
 
-def make_periodic(delay: int):
+def make_periodic(delay: int) -> callable:
     """Decorator with parameter for making functions periodically launched
     :param delay: period in which function should be called, in seconds
     :return: periodic function
     """
 
-    def launch_periodically(function):
+    def launch_periodically(function: callable) -> callable:
         def launched_periodically(*args, **kwargs):
             timer = threading.Timer(delay, function, args=args, kwargs=kwargs)
             try:
@@ -29,7 +31,7 @@ def make_periodic(delay: int):
     return launch_periodically
 
 
-def get_raw_vk_objects_from_posts(vk_object_class, posts: list) -> list:
+def get_raw_vk_objects_from_posts(vk_object_class: VKObject, posts: list) -> list:
     vk_object_name = vk_object_class.name()
     raw_vk_objects = list(
         attachment[vk_object_name]

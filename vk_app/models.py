@@ -55,5 +55,5 @@ class VKObject:
         return vk_objects
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict):
+    def from_raw(cls, raw_vk_object: dict) -> type:
         """Must be overridden by inheritors"""
