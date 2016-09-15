@@ -2,17 +2,10 @@ import os
 import shutil
 from typing import List
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-
 from .utils import find_file, check_dir
 
 
 class VKObject:
-    """
-    This class can be used for simple parsing
-    """
-
     def synchronize(self, path: str):
         file_name = self.get_file_name()
         old_file_path = find_file(file_name, path)

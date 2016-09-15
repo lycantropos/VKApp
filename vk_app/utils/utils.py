@@ -1,48 +1,61 @@
-import logging
 import os
 import threading
+import time
 from datetime import datetime
 from typing import Callable
-from urllib.request import urlopen
 
-__all__ = ['make_periodic', 'get_year_month_date', 'download', 'find_file', 'check_dir', 'get_valid_dirs']
+__all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs']
 
-
-def make_periodic(delay: int) -> Callable[[Callable], Callable]:
-    """Decorator with parameter for making functions periodically launched
-    :param delay: period in which function should be called, in seconds
-    :return: periodic function
-    """
-
-    def launch_periodically(function: Callable) -> Callable:
-        def launched_periodically(*args, **kwargs):
-            timer = threading.Timer(delay, function, args=args, kwargs=kwargs)
-            try:
-                timer.start()
-            except RuntimeError:
-                timer.cancel()
-                launched_periodically(*args, **kwargs)
-
-        return launched_periodically
-
-    return launch_periodically
+VoidFunction = Callable[..., None]
 
 
-@make_periodic(23)
-def download(link: str, save_path: str):
-    if not os.path.exists(save_path):
-        try:
-            response = urlopen(link)
-            if response.status == 200:
-                with open(save_path, 'wb') as out:
-                    image_content = response.read()
-                    out.write(image_content)
-        except (ValueError, OSError):
-            logging.exception(save_path)
+class CallRepeater:
+    call_event = threading.Event()
+    last_call_time = time.time()
+
+    @classmethod
+    def make_periodic(cls, period_in_sec: float) -> Callable[[VoidFunction], Callable]:
+        """Decorator with parameter for making functions periodically launched"""
+
+        if period_in_sec <= 0.:
+            raise ValueError("Non-positive period: {}".format(period_in_sec))
+
+        def launch_periodically(function: VoidFunction) -> Callable:
+            def launched_periodically(*args, **kwargs):
+                while not cls.call_event.wait(cls.last_call_time - time.time()):
+                    function(*args, **kwargs)
+                    cls.last_call_time += period_in_sec
+
+            return launched_periodically
+
+        return launch_periodically
+
+
+class CallDelayer:
+    call_event = threading.Event()
+    last_call_time = time.time()
+
+    @classmethod
+    def make_delayed(cls, delay_in_seconds: float) -> Callable[[VoidFunction], Callable]:
+        """Decorator with parameter for making functions launched with minimal delay between calls"""
+
+        if delay_in_seconds <= 0.:
+            raise ValueError("Non-positive delay: {}".format(delay_in_seconds))
+
+        def launch_with_delay(function: VoidFunction) -> Callable:
+            def launched_with_delay(*args, **kwargs):
+                cls.last_call_time += delay_in_seconds
+                function(*args, **kwargs)
+                cls.call_event.wait(cls.last_call_time - time.time())
+
+            return launched_with_delay
+
+        return launch_with_delay
 
 
 def get_year_month_date(date_time: datetime, sep='.') -> str:
-    year_month_date = date_time.strftime(sep.join(['%Y', '%m']))
+    year_month_date_format = sep.join(['%Y', '%m'])
+    year_month_date = date_time.strftime(year_month_date_format)
     return year_month_date
 
 
