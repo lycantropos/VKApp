@@ -3,12 +3,12 @@ from datetime import datetime
 from time import sleep
 from typing import List
 
-from vk_app import MetaVKObject
+from vk_app import VKObject
 
 __all__ = ['get_vk_objects_from_raw', 'get_raw_vk_objects_from_posts', 'download_vk_objects']
 
 
-def get_vk_objects_from_raw(vk_object_cls: MetaVKObject, raw_vk_objects: List[dict]) -> List[MetaVKObject]:
+def get_vk_objects_from_raw(vk_object_cls: VKObject, raw_vk_objects: List[dict]) -> List[VKObject]:
     vk_objects = list(
         vk_object_cls.from_raw(raw_vk_object)
         for raw_vk_object in raw_vk_objects
@@ -16,7 +16,7 @@ def get_vk_objects_from_raw(vk_object_cls: MetaVKObject, raw_vk_objects: List[di
     return vk_objects
 
 
-def get_raw_vk_objects_from_posts(vk_object_cls: MetaVKObject, posts: List[dict]) -> List[dict]:
+def get_raw_vk_objects_from_posts(vk_object_cls: VKObject, posts: List[dict]) -> List[dict]:
     vk_object_name = vk_object_cls.name()
     raw_vk_objects = list(
         attachment[vk_object_name]
@@ -31,7 +31,7 @@ def get_raw_vk_objects_from_posts(vk_object_cls: MetaVKObject, posts: List[dict]
 MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
 
 
-def download_vk_objects(vk_objects: List[MetaVKObject], save_path: str):
+def download_vk_objects(vk_objects: List[VKObject], save_path: str):
     last_download_time = datetime.utcnow()
     for ind, vk_object in enumerate(vk_objects):
         try:

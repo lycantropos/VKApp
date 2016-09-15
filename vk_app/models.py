@@ -8,7 +8,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from .utils import find_file, check_dir
 
 
-class MetaVKObject:
+class VKObject:
     """
     This class can be used for simple parsing
     """
@@ -60,7 +60,9 @@ class MetaVKObject:
 Base = declarative_base()
 
 
-class VKObject(Base, MetaVKObject):
+class MappedVKObject(Base, VKObject):
+    __tablename__ = 'sample'
+
     def as_dict(self) -> dict:
         keys = list(
             key
