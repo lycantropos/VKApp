@@ -47,12 +47,5 @@ class VKObject:
         """
 
     @classmethod
-    def info_fields(cls) -> list:
-        """
-        Should return list of VK object's fields names which should be updated in database
-        if its row already exists
-        """
-
-    @classmethod
     def from_raw(cls, raw_vk_object: dict) -> type:
         """Must be overridden by inheritors"""

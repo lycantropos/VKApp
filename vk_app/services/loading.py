@@ -8,10 +8,10 @@ __MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
 
 
 @CallDelayer.make_delayed(__MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS)
-def download(link: str, save_path: str):
-    if not os.path.exists(save_path) and link:
+def download(url: str, save_path: str):
+    if not os.path.exists(save_path) and url:
         try:
-            response = urlopen(link)
+            response = urlopen(url)
             if response.status == 200:
                 with open(save_path, 'wb') as out:
                     image_content = response.read()
