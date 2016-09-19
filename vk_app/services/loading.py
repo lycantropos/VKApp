@@ -4,7 +4,7 @@ from urllib.request import urlopen
 
 from vk_app.utils import CallDelayer
 
-__MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 0.33
+__MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS = 1
 
 
 @CallDelayer.make_delayed(__MINIMAL_INTERVAL_BETWEEN_REQUESTS_IN_SECONDS)
