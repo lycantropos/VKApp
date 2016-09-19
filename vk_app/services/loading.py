@@ -17,4 +17,5 @@ def download(url: str, save_path: str):
                     image_content = response.read()
                     out.write(image_content)
         except (ValueError, OSError):
-            logging.exception(save_path)
+            error_description = "Can't download to {} from {}".format(save_path, url)
+            logging.exception(error_description)
