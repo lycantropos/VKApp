@@ -1,8 +1,7 @@
 import json
 
 from vk import API, Session, AuthSession
-
-
+from utils import map_columns
 class App:
     def __init__(self, app_id='', user_login='', user_password='', scope='', access_token='',
                  api_version='5.53'):
