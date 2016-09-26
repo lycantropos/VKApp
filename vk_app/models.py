@@ -6,10 +6,13 @@ from vk_app.utils import find_file, check_dir
 
 
 class VKObject:
-    def synchronize(self, path: str):
+    def synchronize(self, path: str, files_paths=None):
         file_name = self.get_file_name()
-        old_file_path = find_file(file_name, path)
-        if old_file_path:
+        if files_paths is not None:
+            old_file_path = next((file_path for file_path in files_paths if file_name in file_path), None)
+        else:
+            old_file_path = find_file(file_name, path)
+        if old_file_path is not None:
             file_subdirs = self.get_file_subdirs()
             check_dir(path, *file_subdirs)
 
