@@ -13,7 +13,7 @@ else:
     from sqlalchemy import (Boolean, Column, DateTime, Integer, String)
 
     __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
-               'map_columns']
+               'map_columns_by_ancestors_constructor']
 
     PYTHON_SQLALCHEMY_TYPES = {
         int: Integer,
@@ -23,14 +23,16 @@ else:
     }
 
 
-    def map_columns(cls: type):
-        ancestor_constructor_signature = inspect.signature(cls.__init__)
+    def map_columns_by_ancestors_constructor(ancestor: type, inheritor: type):
+        ancestor_constructor_signature = inspect.signature(ancestor.__init__)
         arguments = dict(ancestor_constructor_signature.parameters)
 
         for argument in arguments.values():
             if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
                 nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
-                setattr(cls, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable))
+                setattr(
+                    inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
+                )
             elif not isinstance(argument.annotation, inspect._empty):
                 logging.warning(
                     "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
@@ -54,6 +56,10 @@ class CallRepeater:
                 while not cls.call_event.wait(cls.last_call_time - time.time()):
                     function(*args, **kwargs)
                     cls.last_call_time += period_in_sec
+                    logging.debug("Last call of `{}` was at {}".format(
+                        function.__name__),
+                        datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
+                    )
 
             return launched_periodically
 
