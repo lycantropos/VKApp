@@ -60,8 +60,8 @@ VK_ID_FORMAT = '{}_{}'
 
 
 class VKPhoto(VKObject):
-    def __init__(self, owner_id: int, photo_id: int, user_id: int, album: str, date_time: datetime, comment: str=None,
-                 link: str=None):
+    def __init__(self, owner_id: int, photo_id: int, user_id: int, album: str, date_time: datetime, comment: str = '',
+                 link: str = ''):
         # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, photo_id)
         self.owner_id = owner_id
@@ -149,12 +149,12 @@ class VKPhoto(VKObject):
 MAX_FILE_NAME_LEN = os.pathconf(os.getcwd(), 'PC_NAME_MAX')
 
 
-class Audio(VKObject):
+class VKAudio(VKObject):
     FILE_NAME_FORMAT = "{artist} - {title}"
     FILE_EXTENSION = ".mp3"
 
     def __init__(self, owner_id: int, audio_id: int, artist: str, title: str, duration: time, date_time: datetime,
-                 genre_id: int=None, lyrics_id: int=None, link: str=None):
+                 genre_id: int = 0, lyrics_id: int = 0, link: str = ''):
         # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, audio_id)
         self.owner_id = owner_id
@@ -178,7 +178,7 @@ class Audio(VKObject):
 
     def __str__(self):
         return "Audio called '{}'".format(
-            Audio.FILE_NAME_FORMAT.format(**self.__dict__)
+            VKAudio.FILE_NAME_FORMAT.format(**self.__dict__)
         )
 
     @classmethod
@@ -200,18 +200,21 @@ class Audio(VKObject):
         return audio_file_subdirs
 
     def get_file_name(self) -> str:
-        file_name = Audio.FILE_NAME_FORMAT.format(
+        file_name = VKAudio.FILE_NAME_FORMAT.format(
             **self.__dict__
-        )[:MAX_FILE_NAME_LEN - len(Audio.FILE_EXTENSION)].replace(os.sep, ' ') + Audio.FILE_EXTENSION
+        )[:MAX_FILE_NAME_LEN - len(VKAudio.FILE_EXTENSION)].replace(os.sep, ' ') + VKAudio.FILE_EXTENSION
         return file_name
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> VKObject:
-        return Audio(owner_id=int(raw_vk_object['owner_id']), audio_id=int(raw_vk_object['id']),
-                     artist=raw_vk_object['artist'].strip(), title=raw_vk_object['title'].strip(), duration=(
-                datetime.min + timedelta(
-                    seconds=int(raw_vk_object['duration'])
-                )
-            ).time(), date_time=datetime.fromtimestamp(raw_vk_object['date']),
-                     genre_id=int(raw_vk_object.pop('genre_id', 0)), lyrics_id=int(raw_vk_object.pop('lyrics_id', 0)),
-                     link=raw_vk_object['url'] or None)
+        return cls(owner_id=int(raw_vk_object['owner_id']), audio_id=int(raw_vk_object['id']),
+                   artist=raw_vk_object['artist'].strip(), title=raw_vk_object['title'].strip(),
+                   duration=(
+                       datetime.min + timedelta(
+                           seconds=int(raw_vk_object['duration'])
+                       )
+                   ).time(),
+                   date_time=datetime.fromtimestamp(raw_vk_object['date']),
+                   genre_id=int(raw_vk_object.pop('genre_id', 0)),
+                   lyrics_id=int(raw_vk_object.pop('lyrics_id', 0)),
+                   link=raw_vk_object['url'] or None)
