@@ -3,7 +3,7 @@ import shutil
 from datetime import datetime, time, timedelta
 from typing import List
 
-from services.loading import download
+from vk_app.services.loading import download
 from vk_app.utils import find_file, check_dir, get_year_month_date, get_valid_dirs
 
 
