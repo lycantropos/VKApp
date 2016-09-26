@@ -60,8 +60,8 @@ VK_ID_FORMAT = '{}_{}'
 
 
 class VKPhoto(VKObject):
-    def __init__(self, owner_id: int, photo_id: int, user_id: int, album: str, comment: str, date_time: datetime,
-                 link: str):
+    def __init__(self, owner_id: int, photo_id: int, user_id: int, album: str, date_time: datetime, comment: str=None,
+                 link: str=None):
         # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, photo_id)
         self.owner_id = owner_id
@@ -153,8 +153,8 @@ class Audio(VKObject):
     FILE_NAME_FORMAT = "{artist} - {title}"
     FILE_EXTENSION = ".mp3"
 
-    def __init__(self, owner_id: int, audio_id: int, artist: str, title: str, genre_id: int, lyrics_id: int,
-                 duration: time, date_time: datetime, link: str):
+    def __init__(self, owner_id: int, audio_id: int, artist: str, title: str, duration: time, date_time: datetime,
+                 genre_id: int=None, lyrics_id: int=None, link: str=None):
         # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, audio_id)
         self.owner_id = owner_id
@@ -208,11 +208,10 @@ class Audio(VKObject):
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> VKObject:
         return Audio(owner_id=int(raw_vk_object['owner_id']), audio_id=int(raw_vk_object['id']),
-                     artist=raw_vk_object['artist'].strip(), title=raw_vk_object['title'].strip(),
+                     artist=raw_vk_object['artist'].strip(), title=raw_vk_object['title'].strip(), duration=(
+                datetime.min + timedelta(
+                    seconds=int(raw_vk_object['duration'])
+                )
+            ).time(), date_time=datetime.fromtimestamp(raw_vk_object['date']),
                      genre_id=int(raw_vk_object.pop('genre_id', 0)), lyrics_id=int(raw_vk_object.pop('lyrics_id', 0)),
-                     duration=(
-                         datetime.min + timedelta(
-                             seconds=int(raw_vk_object['duration'])
-                         )
-                     ).time(), date_time=datetime.fromtimestamp(raw_vk_object['date']),
                      link=raw_vk_object['url'] or None)
