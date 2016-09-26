@@ -13,7 +13,7 @@ else:
     from sqlalchemy import (Boolean, Column, DateTime, Integer, String)
 
     __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
-               'map_columns_by_ancestors_constructor']
+               'map_non_primary_columns_by_ancestor']
 
     PYTHON_SQLALCHEMY_TYPES = {
         int: Integer,
@@ -23,7 +23,7 @@ else:
     }
 
 
-    def map_columns_by_ancestors_constructor(ancestor: type, inheritor: type):
+    def map_non_primary_columns_by_ancestor(ancestor: type, inheritor: type):
         ancestor_constructor_signature = inspect.signature(ancestor.__init__)
         arguments = dict(ancestor_constructor_signature.parameters)
 
