@@ -1,41 +1,37 @@
 import inspect
 import logging
 import os
-import sys
 import threading
 import time
 from datetime import datetime
 from typing import Callable
 
-if 'sqlalchemy' not in sys.modules:
-    __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs']
-else:
-    from sqlalchemy import (Boolean, Column, DateTime, Integer, String)
+from sqlalchemy import (Boolean, Column, DateTime, Integer, String)
 
-    __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
-               'map_non_primary_columns_by_ancestor']
+__all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
+           'map_non_primary_columns_by_ancestor']
 
-    PYTHON_SQLALCHEMY_TYPES = {
-        int: Integer,
-        str: String(255),
-        bool: Boolean,
-        datetime: DateTime
-    }
+PYTHON_SQLALCHEMY_TYPES = {
+    int: Integer,
+    str: String(255),
+    bool: Boolean,
+    datetime: DateTime
+}
 
 
-    def map_non_primary_columns_by_ancestor(ancestor: type, inheritor: type):
-        ancestor_constructor_signature = inspect.signature(ancestor.__init__)
-        arguments = dict(ancestor_constructor_signature.parameters)
+def map_non_primary_columns_by_ancestor(ancestor: type, inheritor: type):
+    ancestor_constructor_signature = inspect.signature(ancestor.__init__)
+    arguments = dict(ancestor_constructor_signature.parameters)
 
-        for argument in arguments.values():
-            if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
-                nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
-                setattr(
-                    inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
-                )
-            elif not isinstance(argument.annotation, inspect._empty):
-                logging.warning(
-                    "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
+    for argument in arguments.values():
+        if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
+            nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
+            setattr(
+                inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
+            )
+        elif not isinstance(argument.annotation, inspect._empty):
+            logging.warning(
+                "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
 
 VoidFunction = Callable[..., None]
 
