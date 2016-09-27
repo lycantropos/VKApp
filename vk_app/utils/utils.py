@@ -53,7 +53,12 @@ class CallRepeater:
                 while not cls.call_event.wait(cls.last_call_time - time.time()):
                     function(*args, **kwargs)
                     cls.last_call_time += period_in_sec
-                    logging.debug("Calling of `{}`".format(function.__name__))
+                    logging.debug(
+                        "Next call of `{}` will be at {}".format(
+                            function.__name__,
+                            datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
+                        )
+                    )
 
             return launched_periodically
 
