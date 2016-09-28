@@ -61,7 +61,6 @@ class CallRepeater:
                             )
                         )
                 t = threading.Thread(target=loop)
-                t.daemon = True
                 t.start()
 
             return launched_periodically
