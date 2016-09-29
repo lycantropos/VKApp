@@ -50,18 +50,15 @@ class CallRepeater:
 
         def launch_periodically(function: VoidFunction) -> Callable:
             def launched_periodically(*args, **kwargs):
-                def loop():
-                    while not cls.call_event.wait(cls.last_call_time - time.time()):
-                        function(*args, **kwargs)
-                        cls.last_call_time += period_in_sec
-                        logging.debug(
-                            "Next call of `{}` will be at {}".format(
-                                function.__name__,
-                                datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
-                            )
+                while not cls.call_event.wait(cls.last_call_time - time.time()):
+                    function(*args, **kwargs)
+                    cls.last_call_time += period_in_sec
+                    logging.debug(
+                        "Next call of `{}` will be at {}".format(
+                            function.__name__,
+                            datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
                         )
-                t = threading.Thread(target=loop)
-                t.start()
+                    )
 
             return launched_periodically
 
