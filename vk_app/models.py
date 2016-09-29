@@ -120,13 +120,13 @@ class VKPhoto(VKObject):
     @classmethod
     def from_raw(cls, raw_photo: dict) -> VKObject:
         return cls(
-            int(raw_photo['owner_id']),
-            int(raw_photo['id']),
-            int(raw_photo.get('user_id', 0)),
-            raw_photo['album'],
-            raw_photo['text'],
-            datetime.fromtimestamp(raw_photo['date']),
-            cls.get_link(raw_photo)
+            owner_id=int(raw_photo['owner_id']),
+            photo_id=(raw_photo['id']),
+            user_id=(raw_photo.get('user_id', 0)),
+            album=raw_photo['album'],
+            comment=raw_photo['text'],
+            date_time=datetime.fromtimestamp(raw_photo['date']),
+            link=cls.get_link(raw_photo)
         )
 
     @staticmethod
@@ -207,14 +207,18 @@ class VKAudio(VKObject):
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> VKObject:
-        return cls(owner_id=int(raw_vk_object['owner_id']), audio_id=int(raw_vk_object['id']),
-                   artist=raw_vk_object['artist'].strip(), title=raw_vk_object['title'].strip(),
-                   duration=(
-                       datetime.min + timedelta(
-                           seconds=int(raw_vk_object['duration'])
-                       )
-                   ).time(),
-                   date_time=datetime.fromtimestamp(raw_vk_object['date']),
-                   genre_id=int(raw_vk_object.pop('genre_id', 0)),
-                   lyrics_id=int(raw_vk_object.pop('lyrics_id', 0)),
-                   link=raw_vk_object['url'] or None)
+        return cls(
+            owner_id=int(raw_vk_object['owner_id']),
+            audio_id=int(raw_vk_object['id']),
+            artist=raw_vk_object['artist'].strip(),
+            title=raw_vk_object['title'].strip(),
+            duration=(
+                datetime.min + timedelta(
+                    seconds=int(raw_vk_object['duration'])
+                )
+            ).time(),
+            date_time=datetime.fromtimestamp(raw_vk_object['date']),
+            genre_id=int(raw_vk_object.pop('genre_id', 0)),
+            lyrics_id=int(raw_vk_object.pop('lyrics_id', 0)),
+            link=raw_vk_object['url'] or None
+        )
