@@ -1,17 +1,16 @@
 from typing import List
 
-from vk_app.models import VKObject
+from vk_app.models import VKAttachment
 
-__all__ = ['get_raw_vk_objects_from_posts']
+__all__ = ['get_raw_vk_attachments_from_posts']
 
 
-def get_raw_vk_objects_from_posts(vk_object_cls: VKObject, posts: List[dict]) -> List[dict]:
-    vk_object_name = vk_object_cls.attachment_key()
+def get_raw_vk_attachments_from_posts(vk_attachment_cls: VKAttachment, posts: List[dict]) -> List[dict]:
+    vk_attachment_name = vk_attachment_cls.key()
     raw_vk_objects = list(
-        attachment[vk_object_name]
+        attachment[vk_attachment_name]
         for post in posts
-        if 'attachments' in post
-        for attachment in post['attachments']
-        if vk_object_name in attachment
+        for attachment in post.get('attachments', [])
+        if vk_attachment_name in attachment
     )
     return raw_vk_objects
