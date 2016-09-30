@@ -258,7 +258,7 @@ class VKPost(VKObject):
     def from_raw(cls, raw_post: dict) -> VKObject:
         return cls(
             owner_id=int(raw_post['owner_id']),
-            post_id=int(raw_post['post_id']),
+            post_id=int(raw_post['id']),
             from_id=int(raw_post.get('from_id', 0)),
             created_by=int(raw_post.get('created_by', 0)),
             comment=raw_post['comment'],
