@@ -4,7 +4,7 @@ from datetime import datetime, time, timedelta
 from typing import List
 
 from vk_app.services.loading import download
-from vk_app.utils import find_file, check_dir, get_year_month_date, get_valid_dirs, map_non_primary_columns_by_ancestor
+from vk_app.utils import find_file, check_dir, get_year_month_date, get_valid_dirs
 
 VK_ID_FORMAT = '{}_{}'
 
@@ -268,8 +268,8 @@ class VKPost(VKObject):
                 for attachment_key, attachment_content in attachment.items()
                 if attachment_key in ATTACHMENTS_KEY_VK_OBJECT
             ),
-            date_time=datetime.fromtimestamp(int(raw_post['date_time'])),
-            likes_count=int(raw_post['likes_count']),
-            reposts_count=int(raw_post['reposts_count']),
-            comments_count=int(raw_post['comments_count'])
+            date_time=datetime.fromtimestamp(int(raw_post['datetime'])),
+            likes_count=int(raw_post['likes']['count']),
+            reposts_count=int(raw_post['reposts']['count']),
+            comments_count=int(raw_post['comments']['count'])
         )
