@@ -29,7 +29,7 @@ def map_non_primary_columns_by_ancestor(ancestor: type, inheritor: type):
             setattr(
                 inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
             )
-        elif not isinstance(argument.annotation, inspect._empty):
+        else:
             logging.warning(
                 "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
 
