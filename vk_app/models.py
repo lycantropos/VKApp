@@ -268,7 +268,7 @@ class VKPost(VKObject):
                 for attachment_key, attachment_content in attachment.items()
                 if attachment_key in ATTACHMENTS_KEY_VK_OBJECT
             ),
-            date_time=datetime.fromtimestamp(int(raw_post['datetime'])),
+            date_time=datetime.fromtimestamp(int(raw_post['date'])),
             likes_count=int(raw_post['likes']['count']),
             reposts_count=int(raw_post['reposts']['count']),
             comments_count=int(raw_post['comments']['count'])
