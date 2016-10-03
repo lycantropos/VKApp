@@ -155,7 +155,7 @@ class VKPhoto(VKAttachment):
             owner_id=int(raw_photo['owner_id']),
             object_id=int(raw_photo['id']),
             user_id=int(raw_photo.get('user_id', 0)),
-            album=raw_photo.get('album', None),
+            album=SPECIAL_ALBUMS_IDS_TITLES.get(int(raw_photo['album_id']), None),
             comment=raw_photo['text'],
             date_time=datetime.fromtimestamp(int(raw_photo['date'])),
             link=cls.get_link(raw_photo)
@@ -177,6 +177,11 @@ class VKPhoto(VKAttachment):
 
         return highest_res_link
 
+SPECIAL_ALBUMS_IDS_TITLES = {
+    -6: 'profile',
+    -7: 'wall',
+    -15: 'saved'
+}
 
 MAX_FILE_NAME_LEN = os.pathconf(os.getcwd(), 'PC_NAME_MAX')
 

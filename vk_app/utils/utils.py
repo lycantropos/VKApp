@@ -40,7 +40,7 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
                     logging.warning(
                         "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
     else:
-        raise NotImplementedError
+        raise NotImplementedError("It is available to map columns by class's initializing only for its children")
 
 
 VoidFunction = Callable[..., None]
