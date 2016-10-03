@@ -4,8 +4,8 @@ from vk import API, Session, AuthSession
 
 
 class App:
-    def __init__(self, app_id='', user_login='', user_password='', scope='', access_token='',
-                 api_version='5.53'):
+    def __init__(self, app_id: int = 0, user_login: str = '', user_password: str = '', scope: str = '',
+                 access_token: str = '', api_version: str = '5.56'):
         """Creates instance of our application for working with VK API.
         You have to specify authentication data for app (`app_id`) and user (`user_login`, `user_password`, `scope`)
          or `access_token` parameter.
@@ -57,28 +57,27 @@ class App:
         params['count'] = 100
 
         key = 'items'
-        offset = 0
+        offset = params.get('offset', 0)
         items = []
         while True:
             params['offset'] = offset
             params_json = json.dumps(params)
-            code = VK_SCRIPT_GET_ALL.format(method, key, params_json)
+            code = VK_SCRIPT_GET_ALL.format(method=method, key=key, params=params_json)
             code_res = self.api_session.execute(code=code)
             items += code_res[key]
             offset = code_res['offset']
-            count = code_res['count']
-            if offset >= count:
+            if offset >= code_res['count']:
                 return items
 
 
-VK_SCRIPT_GET_ALL = """var params = {2};
-var max_count = params.count, init_offset = params.offset, key = "{1}", offset_count = init_offset;
-var vk_api_req = API.{0}(params), c = vk_api_req.count, items_count = vk_api_req[key], i = 1;
+VK_SCRIPT_GET_ALL = """var params = {params};
+var max_count = params.count, init_offset = params.offset, key = "{key}", offset_count = init_offset;
+var vk_api_req = API.{method}(params), c = vk_api_req.count, items_count = vk_api_req[key], i = 1;
 
 while (i < 25 && offset_count + max_count <= c) {{
     offset_count = i * max_count + init_offset;
     params.offset = offset_count;
-    items_count = items_count + API.{0}(params)[key];
+    items_count = items_count + API.{method}(params)[key];
     i = i + 1;
 }}
 

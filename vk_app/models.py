@@ -1,7 +1,7 @@
 import os
 import shutil
 from datetime import datetime, time, timedelta
-from typing import List
+from typing import List, Dict
 
 from vk_app.services.loading import download
 from vk_app.utils import find_file, check_dir, get_year_month_date, get_valid_dirs
@@ -10,8 +10,24 @@ VK_ID_FORMAT = '{}_{}'
 
 
 class VKObject:
-    def __init__(self, owner_id: int, object_id: int):
+    def __init__(self, owner_id: int, object_id: int, date_time: datetime):
+        # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, object_id)
+        self.owner_id = owner_id
+        self.object_id = object_id
+
+        # technical info fields
+        self.date_time = date_time
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self.vk_id == other.vk_id and \
+                   self.date_time == other.date_time
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        return not self == other
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> type:
@@ -19,6 +35,23 @@ class VKObject:
 
 
 class VKAttachment(VKObject):
+    def __init__(self, owner_id: int, object_id: int, date_time: datetime, link: str):
+        super().__init__(owner_id, object_id, date_time)
+
+        # technical info fields
+        self.link = link
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self.vk_id == other.vk_id and \
+                   self.date_time == other.date_time and \
+                   self.link == other.link
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        return not self == other
+
     def synchronize(self, path: str, files_paths=None):
         file_name = self.get_file_name()
         if files_paths is not None:
@@ -64,21 +97,16 @@ class VKAttachment(VKObject):
 
 
 class VKPhoto(VKAttachment):
-    def __init__(self, owner_id: int, photo_id: int, user_id: int, album: str, date_time: datetime, comment: str = '',
+    def __init__(self, owner_id: int, object_id: int, user_id: int, album: str, date_time: datetime, comment: str = '',
                  link: str = ''):
+        super().__init__(owner_id, object_id, date_time, link)
+
         # VK utility fields
-        super().__init__(owner_id, photo_id)
-        self.owner_id = owner_id
-        self.photo_id = photo_id
         self.user_id = user_id
 
         # info fields
         self.album = album
         self.comment = comment
-
-        # technical info fields
-        self.date_time = date_time
-        self.link = link
 
     def __repr__(self):
         return "<Photo(album='{}', link='{}', date_time='{}')>".format(
@@ -122,10 +150,10 @@ class VKPhoto(VKAttachment):
         return image_content
 
     @classmethod
-    def from_raw(cls, raw_photo: dict) -> VKAttachment:
+    def from_raw(cls, raw_photo: dict) -> VKObject:
         return cls(
             owner_id=int(raw_photo['owner_id']),
-            photo_id=int(raw_photo['id']),
+            object_id=int(raw_photo['id']),
             user_id=int(raw_photo.get('user_id', 0)),
             album=raw_photo.get('album', None),
             comment=raw_photo['text'],
@@ -157,12 +185,9 @@ class VKAudio(VKAttachment):
     FILE_NAME_FORMAT = "{artist} - {title}"
     FILE_EXTENSION = ".mp3"
 
-    def __init__(self, owner_id: int, audio_id: int, artist: str, title: str, duration: time, date_time: datetime,
+    def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
                  genre_id: int = 0, lyrics_id: int = 0, link: str = ''):
-        # VK utility fields
-        super().__init__(owner_id, audio_id)
-        self.owner_id = owner_id
-        self.audio_id = audio_id
+        super().__init__(owner_id, object_id, date_time, link)
 
         # info fields
         self.artist = artist
@@ -172,8 +197,6 @@ class VKAudio(VKAttachment):
 
         # technical info fields
         self.duration = duration
-        self.date_time = date_time
-        self.link = link
 
     def __repr__(self):
         return "<Audio(artist='{}', title='{}', duration='{}')>".format(
@@ -210,10 +233,10 @@ class VKAudio(VKAttachment):
         return file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKObject:
         return cls(
             owner_id=int(raw_vk_object['owner_id']),
-            audio_id=int(raw_vk_object['id']),
+            object_id=int(raw_vk_object['id']),
             artist=raw_vk_object['artist'].strip(),
             title=raw_vk_object['title'].strip(),
             duration=(
@@ -235,12 +258,12 @@ ATTACHMENTS_KEY_VK_OBJECT = dict(
 
 
 class VKPost(VKObject):
-    def __init__(self, owner_id: int, post_id: int, comment: str, attachments: List[VKAttachment], date_time: datetime,
-                 likes_count: int, reposts_count: int, comments_count: int, from_id: int = 0, created_by: int = 0):
+    def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
+                 comment: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
+                 likes_count: int, reposts_count: int, comments_count: int):
+        super().__init__(owner_id, object_id, date_time)
+
         # VK utility fields
-        super().__init__(owner_id, post_id)
-        self.owner_id = owner_id
-        self.post_id = post_id
         self.from_id = from_id
         self.created_by = created_by
 
@@ -249,7 +272,6 @@ class VKPost(VKObject):
         self.attachments = attachments
 
         # technical info fields
-        self.date_time = date_time
         self.likes_count = likes_count
         self.reposts_count = reposts_count
         self.comments_count = comments_count
@@ -258,18 +280,22 @@ class VKPost(VKObject):
     def from_raw(cls, raw_post: dict) -> VKObject:
         return cls(
             owner_id=int(raw_post['owner_id']),
-            post_id=int(raw_post['id']),
+            object_id=int(raw_post['id']),
             from_id=int(raw_post.get('from_id', 0)),
             created_by=int(raw_post.get('created_by', 0)),
             comment=raw_post.get('text', None),
-            attachments=list(
-                ATTACHMENTS_KEY_VK_OBJECT[attachment_key].from_raw(attachment_content)
-                for attachment in raw_post.get('attachments', [])
-                for attachment_key, attachment_content in attachment.items()
-                if attachment_key in ATTACHMENTS_KEY_VK_OBJECT
-            ),
+            attachments=VKPost.get_attachments_from_raw(raw_post.get('attachments', [])),
             date_time=datetime.fromtimestamp(int(raw_post['date'])),
             likes_count=int(raw_post['likes']['count']),
             reposts_count=int(raw_post['reposts']['count']),
             comments_count=int(raw_post['comments']['count'])
         )
+
+    @staticmethod
+    def get_attachments_from_raw(raw_attachments: List[Dict[str, dict]], attachment_key: str=None):
+        attachments = dict()
+        for raw_attachment in raw_attachments:
+            for key, content in raw_attachment.items():
+                if (not attachment_key or key == attachment_key) and key in ATTACHMENTS_KEY_VK_OBJECT:
+                    attachments.setdefault(key, []).append(ATTACHMENTS_KEY_VK_OBJECT[key].from_raw(content))
+        return attachments
