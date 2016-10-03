@@ -1,105 +1,17 @@
 import os
-import shutil
+import re
 from datetime import datetime, time, timedelta
-from typing import List, Dict
+from typing import List
 
-from vk_app.services.loading import download
-from vk_app.utils import find_file, check_dir, get_year_month_date, get_valid_dirs
-
-VK_ID_FORMAT = '{}_{}'
-
-
-class VKObject:
-    def __init__(self, owner_id: int, object_id: int, date_time: datetime):
-        # VK utility fields
-        self.vk_id = VK_ID_FORMAT.format(owner_id, object_id)
-        self.owner_id = owner_id
-        self.object_id = object_id
-
-        # technical info fields
-        self.date_time = date_time
-
-    def __eq__(self, other):
-        if type(self) is type(other):
-            return self.vk_id == other.vk_id and \
-                   self.date_time == other.date_time
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        return not self == other
-
-    @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> type:
-        """Must be overridden by inheritors"""
-
-
-class VKAttachment(VKObject):
-    def __init__(self, owner_id: int, object_id: int, date_time: datetime, link: str):
-        super().__init__(owner_id, object_id, date_time)
-
-        # technical info fields
-        self.link = link
-
-    def __eq__(self, other):
-        if type(self) is type(other):
-            return self.vk_id == other.vk_id and \
-                   self.date_time == other.date_time and \
-                   self.link == other.link
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        return not self == other
-
-    def synchronize(self, path: str, files_paths=None):
-        file_name = self.get_file_name()
-        if files_paths is not None:
-            old_file_path = next((file_path for file_path in files_paths if file_name in file_path), None)
-        else:
-            old_file_path = find_file(file_name, path)
-        if old_file_path is not None:
-            file_subdirs = self.get_file_subdirs()
-            check_dir(path, *file_subdirs)
-
-            file_dir = os.path.join(path, *file_subdirs)
-            file_path = os.path.join(file_dir, file_name)
-
-            shutil.move(old_file_path, file_path)
-        else:
-            self.download(path)
-
-    def download(self, path: str):
-        """Must be overridden by inheritors"""
-
-    def get_file_path(self, path: str) -> str:
-        file_name = self.get_file_name()
-        file_subdirs = self.get_file_subdirs()
-        file_path = os.path.join(path, *file_subdirs, file_name)
-        return file_path
-
-    def get_file_subdirs(self) -> List[str]:
-        """
-        Should return list of subdirectories names for file to be located at
-
-        Must be overridden by inheritors
-        """
-
-    def get_file_name(self) -> str:
-        """Must be overridden by inheritors"""
-
-    @classmethod
-    def key(cls) -> str:
-        """
-        For elements of attachments (such as VK photo, audio objects) should return their key in attachment object
-        e.g. for VK photo object should return 'photo', for VK audio object should return 'audio' and etc.
-        """
+from models.abstract import VKAttachment, VKObject
+from services.loading import download
+from utils import check_dir, get_year_month_date, get_valid_dirs
 
 
 class VKPhoto(VKAttachment):
     def __init__(self, owner_id: int, object_id: int, user_id: int, album: str, date_time: datetime, comment: str = '',
                  link: str = ''):
-        super().__init__(owner_id, object_id, date_time, link)
+        super().__init__(owner_id, object_id, link)
 
         # VK utility fields
         self.user_id = user_id
@@ -107,6 +19,9 @@ class VKPhoto(VKAttachment):
         # info fields
         self.album = album
         self.comment = comment
+
+        # technical info fields
+        self.date_time = date_time
 
     def __repr__(self):
         return "<Photo(album='{}', link='{}', date_time='{}')>".format(
@@ -177,12 +92,12 @@ class VKPhoto(VKAttachment):
 
         return highest_res_link
 
+
 SPECIAL_ALBUMS_IDS_TITLES = {
     -6: 'profile',
     -7: 'wall',
     -15: 'saved'
 }
-
 MAX_FILE_NAME_LEN = os.pathconf(os.getcwd(), 'PC_NAME_MAX')
 
 
@@ -192,7 +107,7 @@ class VKAudio(VKAttachment):
 
     def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
                  genre_id: int = 0, lyrics_id: int = 0, link: str = ''):
-        super().__init__(owner_id, object_id, date_time, link)
+        super().__init__(owner_id, object_id, link)
 
         # info fields
         self.artist = artist
@@ -201,6 +116,7 @@ class VKAudio(VKAttachment):
         self.lyrics_id = lyrics_id
 
         # technical info fields
+        self.date_time = date_time
         self.duration = duration
 
     def __repr__(self):
@@ -256,51 +172,133 @@ class VKAudio(VKAttachment):
         )
 
 
-ATTACHMENTS_KEY_VK_OBJECT = dict(
-    (inheritor.key(), inheritor)
-    for inheritor in VKAttachment.__subclasses__()
-)
-
-
-class VKPost(VKObject):
-    def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
-                 comment: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
-                 likes_count: int, reposts_count: int, comments_count: int):
-        super().__init__(owner_id, object_id, date_time)
-
-        # VK utility fields
-        self.from_id = from_id
-        self.created_by = created_by
+class VKVideo(VKAttachment):
+    def __init__(self, owner_id: int, object_id: int, title: str, description: str, duration: time, date_time: datetime,
+                 views_count: int, player: str, link: str, adding_date: datetime = None):
+        super().__init__(owner_id, object_id, link)
 
         # info fields
-        self.comment = comment
-        self.attachments = attachments
+        self.title = title
+        self.description = description
 
         # technical info fields
-        self.likes_count = likes_count
-        self.reposts_count = reposts_count
-        self.comments_count = comments_count
+        self.duration = duration
+        self.date_time = date_time
+        self.adding_date = adding_date
+        self.views_count = views_count
+        self.player = player
+
+    def __repr__(self):
+        return "<Video(title='{}', duration={})>".format(self.title, self.duration)
+
+    def __str__(self):
+        return "Video called '{}'".format(self.title)
 
     @classmethod
-    def from_raw(cls, raw_post: dict) -> VKObject:
+    def key(cls):
+        return 'video'
+
+    def download(self, path: str):
+        video_file_subdirs = self.get_file_subdirs()
+        check_dir(path, *video_file_subdirs)
+
+        video_file_dir = os.path.join(path, *video_file_subdirs)
+        video_file_name = self.get_file_name()
+        video_file_path = os.path.join(video_file_dir, video_file_name)
+
+        download(self.link, video_file_path)
+
+    def get_file_subdirs(self) -> List[str]:
+        doc_file_subdirs = []
+        return doc_file_subdirs
+
+    def get_file_name(self) -> str:
+        file_name = self.title
+        return file_name
+
+    @classmethod
+    def from_raw(cls, raw_vk_object: dict) -> VKObject:
         return cls(
-            owner_id=int(raw_post['owner_id']),
-            object_id=int(raw_post['id']),
-            from_id=int(raw_post.get('from_id', 0)),
-            created_by=int(raw_post.get('created_by', 0)),
-            comment=raw_post.get('text', None),
-            attachments=VKPost.get_attachments_from_raw(raw_post.get('attachments', [])),
-            date_time=datetime.fromtimestamp(int(raw_post['date'])),
-            likes_count=int(raw_post['likes']['count']),
-            reposts_count=int(raw_post['reposts']['count']),
-            comments_count=int(raw_post['comments']['count'])
+            owner_id=int(raw_vk_object['owner_id']),
+            object_id=int(raw_vk_object['id']),
+            title=raw_vk_object['title'].strip(),
+            description=raw_vk_object['description'] or None,
+            duration=(
+                datetime.min + timedelta(
+                    seconds=int(raw_vk_object['duration'])
+                )
+            ).time(),
+            date_time=datetime.fromtimestamp(int(raw_vk_object['date'])),
+            adding_date=datetime.fromtimestamp(int(raw_vk_object['adding_date'])),
+            views_count=int(raw_vk_object['views']),
+            player=raw_vk_object['player'],
+            link=VKVideo.get_link(raw_vk_object)
         )
 
     @staticmethod
-    def get_attachments_from_raw(raw_attachments: List[Dict[str, dict]], attachment_key: str = None):
-        attachments = dict()
-        for raw_attachment in raw_attachments:
-            for key, content in raw_attachment.items():
-                if (not attachment_key or key == attachment_key) and key in ATTACHMENTS_KEY_VK_OBJECT:
-                    attachments.setdefault(key, []).append(ATTACHMENTS_KEY_VK_OBJECT[key].from_raw(content))
-        return attachments
+    def get_link(raw_video: dict) -> str:
+        photo_links = raw_video.get('files', dict())
+        photo_links_keys = list(photo_links.keys())
+        photo_links_keys.sort(
+            key=lambda x: int(
+                re.sub(r'\D+', '0', x.split('_')[-1])
+            )
+        )
+
+        highest_res_link_key = photo_links_keys[-1]
+        highest_res_link = photo_links[highest_res_link_key]
+
+        return highest_res_link
+
+
+class VKDoc(VKAttachment):
+    def __init__(self, owner_id: int, object_id: int, title: str, size: int, ext: str, link: str):
+        super().__init__(owner_id, object_id, link)
+
+        # info fields
+        self.title = title
+
+        # technical info fields
+        self.size = size
+        self.ext = ext
+
+    def __repr__(self):
+        return "<Doc(title='{}', ext='{}')>".format(
+            self.title, self.ext
+        )
+
+    def __str__(self):
+        return "Doc called '{}'".format(self.title)
+
+    @classmethod
+    def key(cls):
+        return 'doc'
+
+    def download(self, path: str):
+        doc_file_subdirs = self.get_file_subdirs()
+        check_dir(path, *doc_file_subdirs)
+
+        doc_file_dir = os.path.join(path, *doc_file_subdirs)
+        doc_file_name = self.get_file_name()
+        doc_file_path = os.path.join(doc_file_dir, doc_file_name)
+
+        download(self.link, doc_file_path)
+
+    def get_file_subdirs(self) -> List[str]:
+        doc_file_subdirs = [self.ext]
+        return doc_file_subdirs
+
+    def get_file_name(self) -> str:
+        file_name = self.title
+        return file_name
+
+    @classmethod
+    def from_raw(cls, raw_vk_object: dict) -> VKObject:
+        return cls(
+            owner_id=int(raw_vk_object['owner_id']),
+            object_id=int(raw_vk_object['id']),
+            title=raw_vk_object['title'].strip(),
+            size=raw_vk_object['size'],
+            ext=raw_vk_object['ext'],
+            link=raw_vk_object['url'] or None
+        )

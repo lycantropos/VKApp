@@ -1,7 +1,8 @@
 import unittest
 from datetime import datetime, time
 
-from models import VKPost, VKPhoto, VKAudio
+from models.attachments import VKPhoto, VKAudio, VKVideo
+from models.post import VKPost
 
 
 class TestModels(unittest.TestCase):
@@ -54,6 +55,62 @@ class TestModels(unittest.TestCase):
                  'boaG2GtdV78oAJzBtTlyr9ko3pue4CpcY9MiirqedU5LbqHOYLxm9_m1Tu_fB1uG-'
                  'Xc78dRNLLIK2--1MjiK91MW0nV-g3C77CI0JIUmfpHXImJ0_PUC77pWCeBIEWc3ii-ajmFXXxc'
         )
+
+        self.raw_video = dict(
+            id=170594858,
+            owner_id=33151248,
+            title="Grouplove - I'm With You [Official Music Video]",
+            duration=330,
+            description='',
+            date=1415048962,
+            views=221,
+            comments=0,
+            photo_130='https://pp.vk.me/c543305/u234346085/video/s_c84862b9.jpg',
+            photo_320='https://pp.vk.me/c543305/u234346085/video/l_fb558594.jpg',
+            adding_date=1415048962,
+            files=dict(
+                mp4_240='https://cs543305.vk.me/u234346085/videos/29dfb3e3d8.240.mp4?extra='
+                        'XngTjD0nYtvFXmjf7xzcujLkgw5kNUlXTL1xTjbToBnKF2J_Qaj'
+                        '-ZzFC_XXWAid_-6qSn1iW75kysTYVN-cz53p52MDo_nFar-n64fK4wVTPr1_qeiIz8ZE3h9ME6TlApGtGpNYhcA',
+                mp4_360='https://cs543305.vk.me/u234346085/videos/29dfb3e3d8.360.mp4?extra='
+                        'XngTjD0nYtvFXmjf7xzcujLkgw5kNUlXTL1xTjbToBnKF2J_Qaj'
+                        '-ZzFC_XXWAid_-6qSn1iW75kysTYVN-cz53p52MDo_nFar-n64fK4wVTPr1_qeiIz8ZE3h9ME6TlApGtGpNYhcA',
+                mp4_480='https://cs543305.vk.me/u234346085/videos/29dfb3e3d8.480.mp4?extra='
+                        'XngTjD0nYtvFXmjf7xzcujLkgw5kNUlXTL1xTjbToBnKF2J_Qaj'
+                        '-ZzFC_XXWAid_-6qSn1iW75kysTYVN-cz53p52MDo_nFar-n64fK4wVTPr1_qeiIz8ZE3h9ME6TlApGtGpNYhcA',
+                mp4_720='https://cs543305.vk.me/u234346085/videos/29dfb3e3d8.720.mp4?extra='
+                        'XngTjD0nYtvFXmjf7xzcujLkgw5kNUlXTL1xTjbToBnKF2J_Qaj'
+                        '-ZzFC_XXWAid_-6qSn1iW75kysTYVN-cz53p52MDo_nFar-n64fK4wVTPr1_qeiIz8ZE3h9ME6TlApGtGpNYhcA'
+            ),
+            player='https://vk.com/video_ext.php?oid=33151248&id=170594858&hash=6af70b680de137f8&__ref='
+                   'vk.api&api_hash=1475515983cb93631fcefce81573_GMZTCNJRGI2DQ',
+            can_edit=1,
+            can_add=1,
+            privacy_view=['all'],
+            privacy_comment=['all'],
+            can_comment=1,
+            can_repost=1,
+            likes=dict(
+                user_likes=0,
+                count=1
+            ),
+            reposts=dict(
+                count=0,
+                user_reposted=0
+            ),
+            repeat=0
+        )
+        self.video = VKVideo(
+            owner_id=33151248, object_id=170594858, title="Grouplove - I'm With You [Official Music Video]",
+            description=None, duration=time(0, 5, 30), date_time=datetime(2014, 11, 4, 3, 9, 22), views_count=221,
+            player='https://vk.com/video_ext.php?oid=33151248&id=170594858&hash=6af70b680de137f8&__ref='
+                   'vk.api&api_hash=1475515983cb93631fcefce81573_GMZTCNJRGI2DQ',
+            link='https://cs543305.vk.me/u234346085/videos/29dfb3e3d8.720.mp4?extra='
+                 'XngTjD0nYtvFXmjf7xzcujLkgw5kNUlXTL1xTjbToBnKF2J_Qaj'
+                 '-ZzFC_XXWAid_-6qSn1iW75kysTYVN-cz53p52MDo_nFar-n64fK4wVTPr1_qeiIz8ZE3h9ME6TlApGtGpNYhcA',
+            adding_date=datetime(2014, 11, 4, 3, 9, 22)
+        )
+
         self.raw_post = dict(
             post_source={'type': 'vk'}, comments={'can_post': 0, 'count': 0}, can_edit=1, date=1475254508,
             text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
@@ -117,13 +174,17 @@ class TestModels(unittest.TestCase):
         )
 
     def test_vk_photo_from_raw(self):
-        self.assertEqual(VKPhoto.from_raw(self.raw_photo), self.photo, 'Test message')
+        self.assertEqual(VKPhoto.from_raw(self.raw_photo), self.photo)
 
     def test_vk_audio_from_raw(self):
-        self.assertEqual(VKAudio.from_raw(self.raw_audio), self.audio, 'Test message')
+        self.assertEqual(VKAudio.from_raw(self.raw_audio), self.audio)
+
+    def test_vk_video_from_raw(self):
+        video = VKVideo.from_raw(self.raw_video)
+        self.assertEqual(video, self.video, 'Test message')
 
     def test_vk_post_from_raw(self):
-        self.assertEqual(VKPost.from_raw(self.raw_post), self.post, 'Test message')
+        self.assertEqual(VKPost.from_raw(self.raw_post), self.post)
 
 
 if __name__ == '__main__':
