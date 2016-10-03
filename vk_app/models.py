@@ -292,7 +292,7 @@ class VKPost(VKObject):
         )
 
     @staticmethod
-    def get_attachments_from_raw(raw_attachments: List[Dict[str, dict]], attachment_key: str=None):
+    def get_attachments_from_raw(raw_attachments: List[Dict[str, dict]], attachment_key: str = None):
         attachments = dict()
         for raw_attachment in raw_attachments:
             for key, content in raw_attachment.items():

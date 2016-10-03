@@ -3,35 +3,44 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime
 from typing import Callable
 
-from sqlalchemy import (Boolean, Column, DateTime, Integer, String)
+import datetime
+from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
+from sqlalchemy import Interval
+from sqlalchemy import Time
 
 __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
            'map_non_primary_columns_by_ancestor']
 
 PYTHON_SQLALCHEMY_TYPES = {
+    bool: Boolean,
+    bytes: LargeBinary,
+    datetime.datetime: DateTime,
+    datetime.timedelta: Interval,
+    datetime.time: Time,
     int: Integer,
     str: String(255),
-    bool: Boolean,
-    datetime: DateTime
 }
 
 
-def map_non_primary_columns_by_ancestor(ancestor: type, inheritor: type):
-    ancestor_constructor_signature = inspect.signature(ancestor.__init__)
-    arguments = dict(ancestor_constructor_signature.parameters)
+def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
+    if issubclass(inheritor, ancestor):
+        ancestor_constructor_signature = inspect.signature(ancestor.__init__)
+        arguments = dict(ancestor_constructor_signature.parameters)
 
-    for argument in arguments.values():
-        if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
-            nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
-            setattr(
-                inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
-            )
-        else:
-            logging.warning(
-                "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
+        for argument in arguments.values():
+            if argument.name != 'self':
+                if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
+                    nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
+                    setattr(
+                        inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
+                    )
+                else:
+                    logging.warning(
+                        "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
+    else:
+        raise NotImplementedError
 
 
 VoidFunction = Callable[..., None]
@@ -56,7 +65,7 @@ class CallRepeater:
                     logging.debug(
                         "Next call of `{}` will be at {}".format(
                             function.__name__,
-                            datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
+                            datetime.datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
                         )
                     )
 
@@ -88,7 +97,7 @@ class CallDelayer:
         return launch_with_delay
 
 
-def get_year_month_date(date_time: datetime, sep='.') -> str:
+def get_year_month_date(date_time: datetime.datetime, sep='.') -> str:
     year_month_date_format = sep.join(['%Y', '%m'])
     year_month_date = date_time.strftime(year_month_date_format)
     return year_month_date
