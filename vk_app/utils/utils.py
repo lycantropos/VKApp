@@ -1,17 +1,17 @@
+import datetime
 import inspect
 import logging
 import os
 import threading
 import time
-from typing import Callable
+from typing import Callable, List
 
-import datetime
 from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
 from sqlalchemy import Interval
 from sqlalchemy import Time
 
-__all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'find_file', 'check_dir', 'get_valid_dirs',
-           'map_non_primary_columns_by_ancestor']
+__all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'get_normalized_file_name', 'find_file', 'check_dir',
+           'get_valid_dirs', 'map_non_primary_columns_by_ancestor']
 
 PYTHON_SQLALCHEMY_TYPES = {
     bool: Boolean,
@@ -34,7 +34,8 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
                 if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
                     nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
                     setattr(
-                        inheritor, argument.name, Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
+                        inheritor, argument.name,
+                        Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
                     )
                 else:
                     logging.warning(
@@ -103,11 +104,18 @@ def get_year_month_date(date_time: datetime.datetime, sep='.') -> str:
     return year_month_date
 
 
-def find_file(name: str, path: str):
+def find_file(name: str, path: str) -> str:
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
     return None
+
+
+MAX_FILE_NAME_LEN = os.pathconf(os.getcwd(), 'PC_NAME_MAX')
+
+
+def get_normalized_file_name(name: str, ext: str):
+    return name[:MAX_FILE_NAME_LEN - len(ext)].replace(os.sep, ' ') + ext
 
 
 def check_dir(path_dir: str, *subdirs):
@@ -121,7 +129,16 @@ def check_dir(path_dir: str, *subdirs):
             os.mkdir(path)
 
 
-def get_valid_dirs(*dirs) -> list:
+def get_valid_dirs(*dirs) -> List[str]:
     valid_dirs = filter(None, dirs)
     valid_dirs = list(valid_dirs)
     return valid_dirs
+
+
+def get_all_subclasses(cls: type) -> List[type]:
+    all_subclasses = cls.__subclasses__() + [
+        subsubclass
+        for subclass in cls.__subclasses__()
+        for subsubclass in get_all_subclasses(subclass)
+        ]
+    return all_subclasses

@@ -5,7 +5,7 @@ from vk import API, Session, AuthSession
 
 class App:
     def __init__(self, app_id: int = 0, user_login: str = '', user_password: str = '', scope: str = '',
-                 access_token: str = '', api_version: str = '5.56'):
+                 access_token: str = '', api_version: str = '5.57'):
         """Creates instance of our application for working with VK API.
         You have to specify authentication data for app (`app_id`) and user (`user_login`, `user_password`, `scope`)
          or `access_token` parameter.
