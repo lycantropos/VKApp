@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
-from models.abstract import VKAttachment, VKObject
-from utils.utils import get_all_subclasses
+from vk_app.models.abstract import VKAttachment, VKObject
+from vk_app.utils import get_all_subclasses
 
 ATTACHMENTS_KEY_VK_OBJECT = dict(
     (inheritor.key(), inheritor)

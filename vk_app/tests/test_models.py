@@ -1,8 +1,8 @@
 import unittest
 from datetime import datetime, time
 
-from models.attachments import VKPhoto, VKAudio, VKVideo, VKDoc, VKNote, VKPoll
-from models.post import VKPost
+from vk_app.models.attachments import VKPhoto, VKAudio, VKVideo, VKDoc, VKNote, VKPoll
+from vk_app.models.post import VKPost
 
 
 class TestModels(unittest.TestCase):

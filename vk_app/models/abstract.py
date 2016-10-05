@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List
 
-from utils import find_file, check_dir
+from vk_app.utils import find_file, check_dir
 
 VK_ID_FORMAT = '{}_{}'
 
@@ -58,6 +58,16 @@ class VKFileAttachment(VKAttachment):
 
         # technical info fields
         self.link = link
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self.vk_id == other.vk_id and \
+                   self.link == other.link
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        return not self == other
 
     def synchronize(self, path: str, files_paths=None):
         file_name = self.get_file_name()

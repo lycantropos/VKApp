@@ -1,11 +1,10 @@
 import os
-import re
 from datetime import datetime, time, timedelta
 from typing import List
 
-from models.abstract import VKObject, VKAttachment, VKFileAttachment
-from services.loading import download
-from utils import check_dir, get_year_month_date, get_valid_dirs, get_normalized_file_name
+from vk_app.models.abstract import VKObject, VKAttachment, VKFileAttachment
+from vk_app.services.loading import download
+from vk_app.utils import check_dir, get_year_month_date, get_valid_dirs, get_normalized_file_name
 
 
 class VKPage(VKAttachment):
@@ -14,6 +13,7 @@ class VKPage(VKAttachment):
 
     more info about `Page` objects at https://vk.com/dev/page
     """
+
     def __init__(self, owner_id: int, object_id: int, creator_id: int, title: str, html: str, who_can_view: int,
                  who_can_edit: int, date_time: datetime, edited_date_time: datetime, views_count: int,
                  source: str = None):
@@ -61,6 +61,7 @@ class VKNote(VKAttachment):
 
     more info about `Note` objects at https://vk.com/dev/note
     """
+
     def __init__(self, owner_id: int, object_id: int, title: str, date_time: datetime, comments_count: int,
                  text: str = None):
         super().__init__(owner_id, object_id)
@@ -101,6 +102,7 @@ class VKPoll(VKAttachment):
 
     more info about `Poll` objects at https://vk.com/dev/polls.getById
     """
+
     def __init__(self, owner_id: int, object_id: int, question: str, answers: List[dict], anonymous: bool,
                  date_time: datetime, votes_count: int):
         super().__init__(owner_id, object_id)
@@ -137,6 +139,7 @@ class VKPhotoAlbum(VKAttachment):
 
     more info about `Photo album` objects at https://vk.com/dev/photos.getAlbums
     """
+
     def __init__(self, owner_id: int, object_id: int, title: str, date_time: datetime,
                  updated_date_time: datetime, photos_count: int, description: str = None):
         super().__init__(owner_id, object_id)
@@ -165,6 +168,10 @@ class VKPhotoAlbum(VKAttachment):
             updated_date_time=datetime.fromtimestamp(raw_vk_object['updated']),
             photos_count=raw_vk_object['size']
         )
+
+
+def link_key_sort_key(link_key: str):
+    return int(link_key.split('_')[-1])
 
 
 class VKPhoto(VKFileAttachment):
@@ -249,14 +256,14 @@ class VKPhoto(VKFileAttachment):
 
     @staticmethod
     def get_link(raw_photo: dict) -> str:
-        photo_link_key_prefix = 'photo_'
+        photo_link_key_prefix = VKPhoto.key()
 
         photo_link_keys = list(
             raw_photo_key
             for raw_photo_key in raw_photo
             if photo_link_key_prefix in raw_photo_key
         )
-        photo_link_keys.sort(key=lambda x: int(x.replace(photo_link_key_prefix, '')))
+        photo_link_keys.sort(key=link_key_sort_key)
 
         highest_res_link_key = photo_link_keys[-1]
         highest_res_link = raw_photo[highest_res_link_key]
@@ -414,11 +421,7 @@ class VKVideo(VKFileAttachment):
         video_links = raw_video.get('files', dict())
         if video_links:
             video_links_keys = list(video_links.keys())
-            video_links_keys.sort(
-                key=lambda x: int(
-                    re.sub(r'\D+', '0', x.split('_')[-1])
-                )
-            )
+            video_links_keys.sort(key=link_key_sort_key)
 
             highest_res_link_key = video_links_keys[-1]
             highest_res_link = video_links[highest_res_link_key]
@@ -432,6 +435,7 @@ class VKDoc(VKFileAttachment):
 
     more info about `Doc` objects at https://vk.com/dev/doc
     """
+
     def __init__(self, owner_id: int, object_id: int, title: str, size: int, ext: str, link: str):
         super().__init__(owner_id, object_id, link)
 

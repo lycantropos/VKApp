@@ -2,8 +2,8 @@ import unittest
 
 import click
 
-from tests.test_models import TestModels
-from tests.test_utils import TestUtils
+from vk_app.tests.test_models import TestModels
+from vk_app.tests.test_utils import TestUtils
 
 
 @click.group(name='tests', invoke_without_command=False)

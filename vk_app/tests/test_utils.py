@@ -2,7 +2,7 @@ import os
 import unittest
 from datetime import datetime
 
-from utils import get_year_month_date, find_file, check_dir, get_valid_dirs
+from vk_app.utils import get_year_month_date, find_file, check_dir, get_valid_dirs
 
 
 class TestUtils(unittest.TestCase):
