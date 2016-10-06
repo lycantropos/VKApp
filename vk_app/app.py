@@ -40,7 +40,7 @@ class App:
         self.api_version = api_version
         self.api_session = API(self.session, v=self.api_version)
 
-    def get_items(self, method: str, params: dict):
+    def get_items(self, method: str, **params):
         """Get VK countable objects (wall posts, audios, photo albums, photos, videos, etc.)
 
         :param method: name of API method. Ex.: 'photos.get'

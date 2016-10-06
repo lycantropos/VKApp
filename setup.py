@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='VKApp',
     version='0.0.1',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=[
         'vk==2.0.2', 'sqlalchemy>=1.0', 'click==6.6'
     ],
