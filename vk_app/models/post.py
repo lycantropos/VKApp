@@ -41,7 +41,7 @@ class VKPost(VKObject):
         if type(self) is type(other):
             return self.vk_id == other.vk_id and \
                    self.date_time == other.date_time and \
-                   self.attachments == other.attachments
+                   all(attachments_list == self.attachments[key] for key, attachments_list in other.attachments.items())
         else:
             return NotImplemented
 
