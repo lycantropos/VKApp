@@ -1,8 +1,8 @@
 import unittest
 
 import click
-from vk_app.tests.test_models import TestModels
 
+from tests.test_models import TestModels
 from tests.test_utils import TestUtils
 
 

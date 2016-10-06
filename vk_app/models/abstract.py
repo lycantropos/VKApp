@@ -13,6 +13,7 @@ class VKObject:
 
     more info about `Data types` at https://vk.com/dev/datatypes
     """
+
     def __init__(self, owner_id: int, object_id: int):
         # VK utility fields
         self.vk_id = VK_ID_FORMAT.format(owner_id, object_id)
@@ -39,6 +40,7 @@ class VKAttachment(VKObject):
 
     more info about `Media Attachments` at https://vk.com/dev/attachments_w
     """
+
     @classmethod
     def key(cls) -> str:
         """
@@ -53,6 +55,7 @@ class VKFileAttachment(VKAttachment):
 
     more info about `Media Attachments` at https://vk.com/dev/attachments_w
     """
+
     def __init__(self, owner_id: int, object_id: int, link: str = None):
         super().__init__(owner_id, object_id)
 
@@ -88,6 +91,13 @@ class VKFileAttachment(VKAttachment):
 
     def download(self, path: str):
         """Must be overridden by inheritors"""
+
+    def get_file_content(self, path: str, **kwargs) -> bytearray:
+        file_path = self.get_file_path(path, **kwargs)
+        with open(file_path, 'rb') as file:
+            file_content = file.read()
+
+        return file_content
 
     def get_file_path(self, path: str, **kwargs) -> str:
         file_name = self.get_file_name(**kwargs)

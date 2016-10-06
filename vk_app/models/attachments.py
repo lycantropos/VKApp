@@ -233,14 +233,6 @@ class VKPhoto(VKFileAttachment):
             image_name = get_normalized_file_name(image_name, VKPhoto.FILE_EXTENSION)
         return image_name
 
-    def get_image_content(self, images_path: str, marked=False) -> bytearray:
-        image_path = self.get_file_path(images_path, marked=marked)
-
-        with open(image_path, 'rb') as image:
-            image_content = image.read()
-
-        return image_content
-
     @classmethod
     def from_raw(cls, raw_photo: dict) -> VKObject:
         return cls(
