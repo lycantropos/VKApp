@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
-from vk_app.models.abstract import VKAttachment, VKObject
+from vk_app.models.attachments import VKObject, VKAttachment
 from vk_app.utils import get_all_subclasses
 
 ATTACHMENTS_KEY_VK_OBJECT = dict(
@@ -18,6 +18,7 @@ class VKPost(VKObject):
 
     more info about `Post` objects at https://vk.com/dev/post
     """
+
     def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
                  comment: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
                  likes_count: int, reposts_count: int, comments_count: int):

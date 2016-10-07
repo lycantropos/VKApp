@@ -9,3 +9,4 @@ install:
 script:
 - python manage.py test_models
 - python manage.py test_utils
+- python manage.py test_app

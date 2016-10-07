@@ -4,6 +4,8 @@ import logging
 import os
 import threading
 import time
+from collections import OrderedDict
+from string import Template
 from typing import Callable, List
 
 from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
@@ -11,7 +13,7 @@ from sqlalchemy import Interval
 from sqlalchemy import Time
 
 __all__ = ['CallRepeater', 'CallDelayer', 'get_year_month_date', 'get_normalized_file_name', 'find_file', 'check_dir',
-           'get_valid_dirs', 'map_non_primary_columns_by_ancestor', 'get_all_subclasses']
+           'get_valid_dirs', 'map_non_primary_columns_by_ancestor', 'get_all_subclasses', 'get_repr']
 
 PYTHON_SQLALCHEMY_TYPES = {
     bool: Boolean,
@@ -26,16 +28,17 @@ PYTHON_SQLALCHEMY_TYPES = {
 
 def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
     if issubclass(inheritor, ancestor):
-        ancestor_constructor_signature = inspect.signature(ancestor.__init__)
-        arguments = dict(ancestor_constructor_signature.parameters)
+        ancestor_initializer_signature = inspect.signature(ancestor.__init__)
+        arguments = ancestor_initializer_signature.parameters
 
         for argument in arguments.values():
             if argument.name != 'self':
                 if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
-                    nullable = not bool(argument.default) if not isinstance(argument.default, inspect._empty) else False
                     setattr(
                         inheritor, argument.name,
-                        Column(PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=nullable)
+                        Column(
+                            PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=argument.default is None
+                        )
                     )
                 else:
                     logging.warning(
@@ -142,3 +145,19 @@ def get_all_subclasses(cls: type) -> List[type]:
         for subsubclass in get_all_subclasses(subclass)
         ]
     return all_subclasses
+
+
+def get_repr(instance: object) -> str:
+    cls = instance.__class__
+    return get_repr_template_by_cls(cls).format(**instance.__dict__)
+
+
+def get_repr_template_by_cls(cls: type) -> str:
+    cls_initializer_signature = inspect.signature(cls.__init__)
+    arguments = OrderedDict(cls_initializer_signature.parameters)
+    arguments.pop('self')
+    cls_repr = "{cls_name}({{}})".format(cls_name=cls.__name__)
+    # '!r' flag forces to get `repr()` of object
+    init_signature = ', '.join("{argument}={{{argument}!r}}".format(argument=argument) for argument in arguments)
+    cls_repr = cls_repr.format(init_signature)
+    return cls_repr

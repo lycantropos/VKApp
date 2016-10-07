@@ -50,7 +50,7 @@ class TestModels(unittest.TestCase):
         )
         self.audio = VKAudio(
             owner_id=33151248, object_id=456239153, artist="Blink 182", title="I'm Lost Without You",
-            duration=time(0, 3, 9), date_time=datetime(2016, 10, 2, 9, 55, 42), genre_id=1, lyrics_id=11814435,
+            duration=time(0, 3, 9), date_time=datetime(2016, 10, 2, 9, 55, 42), genre="Rock", lyrics_id=11814435,
             link='https://psv4.vk.me/c4405/u729766/audios/e827863eec4b.mp3?extra='
                  'boaG2GtdV78oAJzBtTlyr9ko3pue4CpcY9MiirqedU5LbqHOYLxm9_m1Tu_fB1uG-'
                  'Xc78dRNLLIK2--1MjiK91MW0nV-g3C77CI0JIUmfpHXImJ0_PUC77pWCeBIEWc3ii-ajmFXXxc'
@@ -296,7 +296,7 @@ class TestModels(unittest.TestCase):
                     VKAudio(
                         owner_id=2000012511, object_id=456239374, artist='Ludovico Einaudi',
                         title="In un'altra vita", duration=time(0, 9, 55), date_time=datetime(2016, 10, 3, 23, 49, 0),
-                        genre_id=16, lyrics_id=11400950,
+                        genre="Classical", lyrics_id=11400950,
                         link='https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra='
                              'uQMvvJy9sTqWFU1DTxk90_g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0'
                              'vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2'

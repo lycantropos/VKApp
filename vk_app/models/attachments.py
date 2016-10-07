@@ -1,10 +1,57 @@
 import os
+import shutil
 from datetime import datetime, time, timedelta
 from typing import List
 
-from vk_app.models.abstract import VKObject, VKAttachment, VKFileAttachment
 from vk_app.services.loading import download
-from vk_app.utils import check_dir, get_year_month_date, get_valid_dirs, get_normalized_file_name
+from vk_app.utils import check_dir, get_year_month_date, get_valid_dirs, find_file, get_normalized_file_name, get_repr
+
+VK_ID_FORMAT = '{owner_id}_{object_id}'
+
+
+class VKObject:
+    """
+    Abstract class for working with VK data types
+
+    more info about `Data types` at https://vk.com/dev/datatypes
+    """
+
+    def __init__(self, owner_id: int, object_id: int):
+        # VK utility fields
+        self.vk_id = VK_ID_FORMAT.format(owner_id=owner_id, object_id=object_id)
+        self.owner_id = owner_id
+        self.object_id = object_id
+
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self.vk_id == other.vk_id
+        else:
+            return NotImplemented
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return get_repr(self)
+
+    @classmethod
+    def from_raw(cls, raw_vk_object: dict) -> type:
+        """Must be overridden by inheritors"""
+
+
+class VKAttachment(VKObject):
+    """
+    Abstract class for working with VK media attachments in wall posts
+
+    more info about `Media Attachments` at https://vk.com/dev/attachments_w
+    """
+
+    @classmethod
+    def key(cls) -> str:
+        """
+        For elements of attachments (such as VK photo, audio objects) should return their key in attachment object
+        e.g. for VK photo object should return 'photo', for VK audio object should return 'audio' and etc.
+        """
 
 
 class VKPage(VKAttachment):
@@ -73,9 +120,6 @@ class VKNote(VKAttachment):
         # technical info fields
         self.date_time = date_time
         self.comments_count = comments_count
-
-    def __repr__(self):
-        return "<Note(title='{}')>".format(self.title)
 
     def __str__(self):
         return "Note called '{}'".format(self.title)
@@ -170,6 +214,66 @@ class VKPhotoAlbum(VKAttachment):
         )
 
 
+class VKFileAttachment(VKAttachment):
+    """
+    Abstract class for working with VK downloadable attachments like photos, audios and etc.
+
+    more info about `Media Attachments` at https://vk.com/dev/attachments_w
+    """
+
+    def __init__(self, owner_id: int, object_id: int, link: str = None):
+        super().__init__(owner_id, object_id)
+
+        # technical info fields
+        self.link = link
+
+    def __ne__(self, other):
+        return not self == other
+
+    def synchronize(self, path: str, files_paths=None):
+        file_name = self.get_file_name()
+        if files_paths is not None:
+            old_file_path = next((file_path for file_path in files_paths if file_name in file_path), None)
+        else:
+            old_file_path = find_file(file_name, path)
+        if old_file_path is not None:
+            file_subdirs = self.get_file_subdirs()
+            check_dir(path, *file_subdirs)
+
+            file_dir = os.path.join(path, *file_subdirs)
+            file_path = os.path.join(file_dir, file_name)
+
+            shutil.move(old_file_path, file_path)
+        else:
+            self.download(path)
+
+    def download(self, path: str):
+        """Must be overridden by inheritors"""
+
+    def get_file_content(self, path: str, **kwargs) -> bytearray:
+        file_path = self.get_file_path(path, **kwargs)
+        with open(file_path, 'rb') as file:
+            file_content = file.read()
+
+        return file_content
+
+    def get_file_path(self, path: str, **kwargs) -> str:
+        file_name = self.get_file_name(**kwargs)
+        file_subdirs = self.get_file_subdirs(**kwargs)
+        file_path = os.path.join(path, *file_subdirs, file_name)
+        return file_path
+
+    def get_file_subdirs(self, **kwargs) -> List[str]:
+        """
+        Should return list of subdirectories names for file to be located at
+
+        Must be overridden by inheritors
+        """
+
+    def get_file_name(self, **kwargs) -> str:
+        """Must be overridden by inheritors"""
+
+
 def link_key_sort_key(link_key: str):
     return int(link_key.split('_')[-1])
 
@@ -197,11 +301,6 @@ class VKPhoto(VKFileAttachment):
 
         # technical info fields
         self.date_time = date_time
-
-    def __repr__(self):
-        return "<Photo(album='{}', link='{}', date_time='{}')>".format(
-            self.album, self.link, self.date_time
-        )
 
     def __str__(self):
         return "Photo from '{}' album".format(self.album)
@@ -281,23 +380,18 @@ class VKAudio(VKFileAttachment):
     FILE_EXTENSION = ".mp3"
 
     def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
-                 genre_id: int = 0, lyrics_id: int = 0, link: str = ''):
+                 genre: str = None, lyrics_id: int = None, link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # info fields
         self.artist = artist
         self.title = title
-        self.genre_id = genre_id
+        self.genre = genre
         self.lyrics_id = lyrics_id
 
         # technical info fields
         self.date_time = date_time
         self.duration = duration
-
-    def __repr__(self):
-        return "<Audio(artist='{}', title='{}', duration='{}')>".format(
-            self.artist, self.title, self.duration
-        )
 
     def __str__(self):
         return "Audio called '{}'".format(
@@ -335,10 +429,35 @@ class VKAudio(VKFileAttachment):
             title=raw_vk_object['title'].strip(),
             duration=(datetime.min + timedelta(seconds=raw_vk_object['duration'])).time(),
             date_time=datetime.fromtimestamp(raw_vk_object['date']),
-            genre_id=raw_vk_object.get('genre_id', None),
+            genre=AUDIO_GENRES_IDS_GENRES.get(raw_vk_object['genre_id'], None),
             lyrics_id=raw_vk_object.get('lyrics_id', None),
             link=raw_vk_object['url'] or None
         )
+
+
+AUDIO_GENRES_IDS_GENRES = {
+    1: "Rock",
+    2: "Pop",
+    3: "Rap & Hip-Hop",
+    4: "Easy Listening",
+    5: "Dance & House",
+    6: "Instrumental",
+    7: "Metal",
+    21: "Alternative",
+    8: "Dubstep",
+    1001: "Jazz & Blues",
+    10: "Drum & Bass",
+    11: "Trance",
+    12: "Chanson",
+    13: "Ethnic",
+    14: "Acoustic & Vocal",
+    15: "Reggae",
+    16: "Classical",
+    17: "Indie Pop",
+    19: "Speech",
+    22: "Electropop & Disco",
+    18: "Other"
+}
 
 
 class VKVideo(VKFileAttachment):
@@ -362,10 +481,7 @@ class VKVideo(VKFileAttachment):
         self.date_time = date_time
         self.adding_date = adding_date
         self.views_count = views_count
-        self.player = player_link
-
-    def __repr__(self):
-        return "<Video(title='{}', duration={})>".format(self.title, self.duration)
+        self.player_link = player_link
 
     def __str__(self):
         return "Video called '{}'".format(self.title)
@@ -437,11 +553,6 @@ class VKDoc(VKFileAttachment):
         # technical info fields
         self.size = size
         self.ext = ext
-
-    def __repr__(self):
-        return "<Doc(title='{}', ext='{}')>".format(
-            self.title, self.ext
-        )
 
     def __str__(self):
         return "Doc called '{}'".format(self.title)
