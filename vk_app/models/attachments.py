@@ -121,9 +121,6 @@ class VKNote(VKAttachment):
         self.date_time = date_time
         self.comments_count = comments_count
 
-    def __str__(self):
-        return "Note called '{}'".format(self.title)
-
     @classmethod
     def key(cls):
         return 'note'
@@ -302,9 +299,6 @@ class VKPhoto(VKFileAttachment):
         # technical info fields
         self.date_time = date_time
 
-    def __str__(self):
-        return "Photo from '{}' album".format(self.album)
-
     @classmethod
     def key(cls) -> str:
         return 'photo'
@@ -393,11 +387,6 @@ class VKAudio(VKFileAttachment):
         self.date_time = date_time
         self.duration = duration
 
-    def __str__(self):
-        return "Audio called '{}'".format(
-            VKAudio.FILE_NAME_FORMAT.format(**self.__dict__)
-        )
-
     @classmethod
     def key(cls):
         return 'audio'
@@ -483,9 +472,6 @@ class VKVideo(VKFileAttachment):
         self.views_count = views_count
         self.player_link = player_link
 
-    def __str__(self):
-        return "Video called '{}'".format(self.title)
-
     @classmethod
     def key(cls):
         return 'video'
@@ -553,9 +539,6 @@ class VKDoc(VKFileAttachment):
         # technical info fields
         self.size = size
         self.ext = ext
-
-    def __str__(self):
-        return "Doc called '{}'".format(self.title)
 
     @classmethod
     def key(cls):
