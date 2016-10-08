@@ -319,7 +319,7 @@ class VKPhoto(VKFileAttachment):
         return image_subdirs
 
     def get_file_name(self, **kwargs) -> str:
-        image_name = self.link.split('/')[-1].split('.')[0]
+        image_name = self.vk_id
         if 'marked' in kwargs and kwargs['marked'] is True:
             image_name = get_normalized_file_name(image_name, VKPhoto.MARKED_FILE_EXTENSION)
         else:

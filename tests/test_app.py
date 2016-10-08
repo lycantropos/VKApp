@@ -48,75 +48,69 @@ class TestApp(unittest.TestCase):
         self.posts_ids = '90353483_117'
         self.posts_by_ids = [
             VKPost(
-                owner_id=90353483, object_id=117, from_id=90353483, created_by=0,
-                comment='Good ones?',
-                attachments=dict(
-                    audio=[
-                        VKAudio(
-                            owner_id=2000021658, object_id=456239096, artist='OK Go',
-                            title='1000 Miles Per Hour', duration=datetime.time(0, 3, 33),
-                            date_time=datetime.datetime(2016, 10, 7, 21, 12, 41),
-                            genre='Other', lyrics_id=3571070,
-                            link='http://cs4-1v4.vk-cdn.net/p20/28c18dee8b627e.mp3?extra='
-                                 'RDy6iwda_sDdu1X3TpQcoLhFh0nGnIAoeXMXpkWPnLkkmyIGQdA2Q1N_'
-                                 'eNvCbIvwLroxyvq6XXSTCmkyJQkGP8hyi4uW6Ud4pHGKepAkv2akBZeemhfeJwJxKBOi7A'
-                        )
-                    ],
-                    video=[
-                        VKVideo(
-                            owner_id=90353483, object_id=456239017, title='1000 MPH - by Ok Go',
-                            description='A music video for "1000 MPH" by Ok Go, showing their adventures on tour',
-                            duration=datetime.time(0, 3, 37), date_time=datetime.datetime(2016, 10, 7, 21, 0, 50),
-                            views_count=25, adding_date=None, player_link=None, link=None
-                        ),
-                        VKVideo(owner_id=-18249587,
-                                object_id=145823149,
-                                title='OK Go - 1000 Miles Per Hour',
-                                description=None,
-                                duration=datetime.time(
-                                    0, 3, 35),
-                                date_time=datetime.datetime(
-                                    2010, 6, 20, 6,
-                                    19, 41),
-                                views_count=137,
-                                adding_date=None,
-                                player_link=None,
-                                link=None
-                                )
-                    ],
-                    poll=[
+                owner_id=90353483, object_id=117, from_id=90353483, created_by=0, comment='Good ones?',
+                attachments={
+                    'poll': [
                         VKPoll(
                             owner_id=90353483, object_id=240627317, question='Good ones?',
-                            answers=[{'id': 803133258, 'rate': 100.0, 'text': 'ofc', 'votes': 1}],
-                            anonymous=False, date_time=datetime.datetime(2016, 10, 7, 21, 12, 41),
-                            votes_count=1
+                            answers=[{'text': 'ofc', 'votes': 1, 'rate': 100.0, 'id': 803133258}], anonymous=False,
+                            date_time=datetime.datetime(2016, 10, 7, 21, 12, 41), votes_count=1
                         )
                     ],
-                    note=[
-                        VKNote(
-                            owner_id=90353483, object_id=11771661,
-                            title='OK Go - 1000 Miles Per Hour',
-                            date_time=datetime.datetime(2016, 10, 7, 21, 10, 54),
-                            comments_count=0, text=None
-                        )
-                    ],
-                    doc=[
-                        VKDoc(
-                            owner_id=90353483, object_id=438149776,
-                            title='OK Go - 1000 Miles Per Hour.txt', size=885, ext='txt',
-                            link='https://vk.com/doc90353483_438149776?hash='
-                                 '65b13f2ac27cc30a5e&dl=14758558039d4e1127c60784a902&api=1'
-                        )
-                    ],
-                    photo=[
+                    'photo': [
                         VKPhoto(
                             owner_id=90353483, object_id=441807821, album_id=-7, album='wall',
                             date_time=datetime.datetime(2016, 10, 7, 21, 10, 48), user_id=None, comment=None,
                             link='http://cs638916.vk.me/v638916483/3238/ffB6PdgQUh8.jpg'
                         )
-                    ]),
-                date_time=datetime.datetime(2016, 10, 7, 21, 12, 41), likes_count=0,
-                reposts_count=0, comments_count=0
+                    ],
+                    'video': [
+                        VKVideo(
+                            owner_id=90353483, object_id=456239017, title='1000 MPH - by Ok Go',
+                            description='A music video for "1000 MPH" by Ok Go, showing their adventures on tour',
+                            duration=datetime.time(0, 3, 37),
+                            date_time=datetime.datetime(2016, 10, 7, 21, 0, 50),
+                            views_count=25, adding_date=None, player_link=None, link=None
+                        ),
+                        VKVideo(
+                            owner_id=-18249587, object_id=145823149, title='OK Go - 1000 Miles Per Hour',
+                            description=None, duration=datetime.time(0, 3, 35),
+                            date_time=datetime.datetime(2010, 6, 20, 6, 19, 41), views_count=137,
+                            adding_date=None,
+                            player_link=None, link=None
+                        )
+                    ],
+                    'doc': [
+                        VKDoc(
+                            owner_id=90353483, object_id=438149776, title='OK Go - 1000 Miles Per Hour.txt',
+                            size=885, ext='txt',
+                            link='https://vk.com/doc90353483_438149776?hash='
+                                 '65b13f2ac27cc30a5e&dl=1475897690226c0d6fee413dec4a&api=1'
+                        )
+                    ],
+                    'audio': [
+                        VKAudio(
+                            owner_id=2000021658, object_id=456239096, artist='OK Go',
+                            title='1000 Miles Per Hour',
+                            duration=datetime.time(0, 3, 33),
+                            date_time=datetime.datetime(2016, 10, 7, 21, 12, 41), genre='Other',
+                            lyrics_id=3571070,
+                            link='http://cs4-1v4.vk-cdn.net/p20/618d6733af8701.mp3?extra='
+                                 '028FbtjHGd7fbygDV0mNY_AD3UR_jINZzRjbUqhItr_'
+                                 'iAvcy3LUCL78QRo1wpadyxoADjcEwc8Wp1STBe4saevj2173UPE8Ox'
+                                 '-7WvZxmSXVuXXRa_Sby2dquRaKP7w'
+                        )
+                    ],
+                    'note': [
+                        VKNote(
+                            owner_id=90353483, object_id=11771661, title='OK Go - 1000 Miles Per Hour',
+                            date_time=datetime.datetime(2016, 10, 7, 21, 10, 54), comments_count=0,
+                            text=None
+                        )
+                    ]
+                },
+                date_time=datetime.datetime(2016, 10, 7, 21, 12, 39), likes_count=0, reposts_count=0,
+                comments_count=0
             )
         ]
 
