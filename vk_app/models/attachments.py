@@ -513,7 +513,7 @@ class VKVideo(VKFileAttachment):
     @staticmethod
     def get_link(raw_video: dict) -> str:
         video_links = raw_video.get('files', dict())
-        if video_links:
+        if video_links and 'external' not in video_links:
             video_links_keys = list(video_links.keys())
             video_links_keys.sort(key=link_key_sort_key)
 
