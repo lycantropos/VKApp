@@ -86,7 +86,7 @@ class VKPage(VKAttachment):
         return 'page'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict):
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
         return cls(
             owner_id=-raw_vk_object['group_id'],
             object_id=raw_vk_object['id'],
@@ -126,7 +126,7 @@ class VKNote(VKAttachment):
         return 'note'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKObject:
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -162,7 +162,7 @@ class VKPoll(VKAttachment):
         return 'poll'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict):
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -199,7 +199,7 @@ class VKPhotoAlbum(VKAttachment):
         return 'album'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict):
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -313,7 +313,7 @@ class VKPhoto(VKFileAttachment):
 
         download(self.link, image_path)
 
-    def get_file_subdirs(self) -> List[str]:
+    def get_file_subdirs(self, **kwargs) -> List[str]:
         year_month_date = get_year_month_date(self.date_time)
         image_subdirs = get_valid_dirs(self.album, year_month_date)
         return image_subdirs
@@ -327,7 +327,7 @@ class VKPhoto(VKFileAttachment):
         return image_name
 
     @classmethod
-    def from_raw(cls, raw_photo: dict) -> VKObject:
+    def from_raw(cls, raw_photo: dict) -> VKFileAttachment:
         return cls(
             owner_id=raw_photo['owner_id'],
             object_id=raw_photo['id'],
@@ -410,7 +410,7 @@ class VKAudio(VKFileAttachment):
         return file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKObject:
+    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -495,7 +495,7 @@ class VKVideo(VKFileAttachment):
         return video_file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKObject:
+    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -563,7 +563,7 @@ class VKDoc(VKFileAttachment):
         return file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKObject:
+    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],

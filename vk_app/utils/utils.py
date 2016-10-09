@@ -5,7 +5,6 @@ import os
 import threading
 import time
 from collections import OrderedDict
-from string import Template
 from typing import Callable, List
 
 from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
@@ -126,7 +125,7 @@ def check_dir(path_dir: str, *subdirs):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    for ind, subdir in enumerate(subdirs):
+    for subdir in subdirs:
         path = os.path.join(path, subdir)
         if not os.path.exists(path):
             os.mkdir(path)

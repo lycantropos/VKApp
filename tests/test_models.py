@@ -369,3 +369,4 @@ class TestModels(unittest.TestCase):
     def test_vk_post_from_raw(self):
         post = VKPost.from_raw(self.raw_post)
         self.assertEqual(post, self.post)
+
