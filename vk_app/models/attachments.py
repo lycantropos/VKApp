@@ -285,7 +285,7 @@ class VKPhoto(VKFileAttachment):
     MARKED_FILE_EXTENSION = '.png'
 
     def __init__(self, owner_id: int, object_id: int, album_id: int, album: str, date_time: datetime,
-                 user_id: int = None, comment: str = None, link: str = None):
+                 user_id: int = None, text: str = None, link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # VK utility fields
@@ -294,7 +294,7 @@ class VKPhoto(VKFileAttachment):
         # info fields
         self.album_id = album_id
         self.album = album
-        self.comment = comment
+        self.text = text
 
         # technical info fields
         self.date_time = date_time
@@ -334,7 +334,7 @@ class VKPhoto(VKFileAttachment):
             user_id=raw_photo.get('user_id', None),
             album_id=raw_photo['album_id'],
             album=SPECIAL_ALBUMS_IDS_TITLES.get(raw_photo['album_id'], None),
-            comment=raw_photo['text'] or None,
+            text=raw_photo['text'] or None,
             date_time=datetime.fromtimestamp(raw_photo['date']),
             link=cls.get_link(raw_photo)
         )

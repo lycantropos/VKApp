@@ -32,7 +32,7 @@ class TestModels(unittest.TestCase):
         )
         self.photo = VKPhoto(
             owner_id=1, object_id=278184324, user_id=0, album_id=-6, album='profile',
-            date_time=datetime(2012, 2, 2, 3, 0, 22), comment='',
+            date_time=datetime(2012, 2, 2, 3, 0, 22), text='',
             link='https://pp.vk.me/c10408/u4172580/-6/x_ee97448e.jpg'
         )
         self.raw_audio = dict(
@@ -290,7 +290,7 @@ class TestModels(unittest.TestCase):
             reposts=dict(count=0, user_reposted=0)
         )
         self.post = VKPost(
-            owner_id=33151248, object_id=3000, from_id=33151248, created_by=0, comment='&#128567;',
+            owner_id=33151248, object_id=3000, from_id=33151248, created_by=0, text='&#128567;',
             attachments=dict(
                 audio=[
                     VKAudio(
@@ -329,12 +329,12 @@ class TestModels(unittest.TestCase):
                 photo=[
                     VKPhoto(
                         owner_id=33151248, object_id=435501272, album_id=-23, album='graffiti',
-                        date_time=datetime(2016, 10, 3, 23, 47, 56), user_id=None, comment=None,
+                        date_time=datetime(2016, 10, 3, 23, 47, 56), user_id=None, text=None,
                         link='https://pp.vk.me/c636223/v636223248/34938/t1lKrWNWWro.jpg'
                     ),
                     VKPhoto(
                         owner_id=33151248, object_id=430441958, album_id=235405921, album=None,
-                        date_time=datetime(2016, 8, 30, 15, 25, 44), user_id=None, comment=None,
+                        date_time=datetime(2016, 8, 30, 15, 25, 44), user_id=None, text=None,
                         link='https://pp.vk.me/c630731/v630731248/4fc7c/SxOzgVokHx8.jpg'
                     )
                 ],
@@ -345,8 +345,8 @@ class TestModels(unittest.TestCase):
                         views_count=179954, adding_date=None, player_link=None, link=None
                     )
                 ]
-
-            ), date_time=datetime(2016, 10, 3, 23, 49, 14), likes_count=1, reposts_count=0, comments_count=0
+            ),
+            date_time=datetime(2016, 10, 3, 23, 49, 14), likes_count=1, reposts_count=0, comments_count=0
 
         )
 

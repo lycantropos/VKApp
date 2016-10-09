@@ -20,7 +20,7 @@ class VKPost(VKObject):
     """
 
     def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
-                 comment: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
+                 text: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
                  likes_count: int, reposts_count: int, comments_count: int):
         super().__init__(owner_id, object_id)
 
@@ -29,7 +29,7 @@ class VKPost(VKObject):
         self.created_by = created_by
 
         # info fields
-        self.comment = comment
+        self.text = text
         self.attachments = attachments
 
         # technical info fields
@@ -56,7 +56,7 @@ class VKPost(VKObject):
             object_id=int(raw_post['id']),
             from_id=int(raw_post.get('from_id', 0)),
             created_by=int(raw_post.get('created_by', 0)),
-            comment=raw_post.get('text', None),
+            text=raw_post.get('text', None),
             attachments=VKPost.get_attachments_from_raw(raw_post.get('attachments', [])),
             date_time=datetime.fromtimestamp(int(raw_post['date'])),
             likes_count=int(raw_post['likes']['count']),

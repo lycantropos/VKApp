@@ -13,7 +13,7 @@ class TestApp(unittest.TestCase):
         self.wall_posts = [
             VKPost(
                 owner_id=-129836227, object_id=2, from_id=-129836227, created_by=0,
-                comment="Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
                         "Nulla sit amet leo magna. "
                         "Etiam convallis metus in mollis ultrices. "
                         "In purus velit, vehicula ut turpis sit amet, faucibus mollis nibh. "
@@ -30,14 +30,14 @@ class TestApp(unittest.TestCase):
             ),
             VKPost(
                 owner_id=-129836227, object_id=1, from_id=-129836227, created_by=0,
-                comment='',
+                text='',
                 attachments={
                     'photo': [
                         VKPhoto(
                             owner_id=-129836227, object_id=431928280, album_id=-7,
                             album='wall',
                             date_time=datetime.datetime(2016, 9, 30, 23, 55, 7), user_id=100,
-                            comment=None,
+                            text=None,
                             link='http://cs638122.vk.me/v638122248/1c41/SnfoaFP-Hfk.jpg')
                     ]
                 },
@@ -48,7 +48,7 @@ class TestApp(unittest.TestCase):
         self.posts_ids = '90353483_117'
         self.posts_by_ids = [
             VKPost(
-                owner_id=90353483, object_id=117, from_id=90353483, created_by=0, comment='Good ones?',
+                owner_id=90353483, object_id=117, from_id=90353483, created_by=0, text='Good ones?',
                 attachments={
                     'poll': [
                         VKPoll(
@@ -60,7 +60,7 @@ class TestApp(unittest.TestCase):
                     'photo': [
                         VKPhoto(
                             owner_id=90353483, object_id=441807821, album_id=-7, album='wall',
-                            date_time=datetime.datetime(2016, 10, 7, 21, 10, 48), user_id=None, comment=None,
+                            date_time=datetime.datetime(2016, 10, 7, 21, 10, 48), user_id=None, text=None,
                             link='http://cs638916.vk.me/v638916483/3238/ffB6PdgQUh8.jpg'
                         )
                     ],
