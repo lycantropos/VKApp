@@ -8,7 +8,7 @@ from vk_app.utils import get_all_subclasses
 ATTACHMENTS_KEY_VK_OBJECT = dict(
     (inheritor.key(), inheritor)
     for inheritor in get_all_subclasses(VKAttachment)
-    if inheritor.key()
+    if inheritor.key() is not None
 )
 
 
@@ -20,7 +20,7 @@ class VKPost(VKObject):
     """
 
     def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
-                 text: str, attachments: Dict[str, List[VKAttachment]], date_time: datetime,
+                 text: str, attachments: List[Dict[str, VKAttachment]], date_time: datetime,
                  likes_count: int, reposts_count: int, comments_count: int):
         super().__init__(owner_id, object_id)
 
@@ -42,7 +42,7 @@ class VKPost(VKObject):
         if type(self) is type(other):
             return self.vk_id == other.vk_id and \
                    self.date_time == other.date_time and \
-                   all(attachments_list == self.attachments[key] for key, attachments_list in other.attachments.items())
+                   self.attachments == other.attachments
         else:
             return NotImplemented
 
@@ -66,17 +66,21 @@ class VKPost(VKObject):
 
     @staticmethod
     def get_attachments_from_raw(raw_attachments: List[Dict[str, dict]], required_keys: List[str] = None,
-                                 forbidden_keys: List[str] = None):
+                                 forbidden_keys: List[str] = None) -> List[Dict[str, VKAttachment]]:
         if not required_keys or not forbidden_keys or \
                 not any(required_key in forbidden_keys for required_key in required_keys):
-            attachments = dict()
+            attachments = list()
             for raw_attachment in raw_attachments:
                 key = raw_attachment['type']
                 content = raw_attachment[key]
                 if (not required_keys or key in required_keys) and \
                         (not forbidden_keys or key not in forbidden_keys):
                     if key in ATTACHMENTS_KEY_VK_OBJECT:
-                        attachments.setdefault(key, []).append(ATTACHMENTS_KEY_VK_OBJECT[key].from_raw(content))
+                        attachments.append(
+                            {
+                                key: ATTACHMENTS_KEY_VK_OBJECT[key].from_raw(content)
+                            }
+                        )
                     else:
                         logging.warning("No support found for attachment type: '{}'".format(key))
             return attachments

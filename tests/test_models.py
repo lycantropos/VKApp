@@ -291,33 +291,49 @@ class TestModels(unittest.TestCase):
         )
         self.post = VKPost(
             owner_id=33151248, object_id=3000, from_id=33151248, created_by=0, text='&#128567;',
-            attachments=dict(
-                audio=[
-                    VKAudio(
-                        owner_id=2000012511, object_id=456239374, artist='Ludovico Einaudi',
-                        title="In un'altra vita", duration=time(0, 9, 55), date_time=datetime(2016, 10, 3, 23, 49, 0),
-                        genre="Classical", lyrics_id=11400950,
-                        link='https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra='
-                             'uQMvvJy9sTqWFU1DTxk90_g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0'
-                             'vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2'
+            attachments=[
+                dict(
+                    photo=VKPhoto(
+                        owner_id=33151248, object_id=435501272, album_id=-23, album='graffiti',
+                        date_time=datetime(2016, 10, 3, 23, 47, 56), user_id=None, text=None,
+                        link='https://pp.vk.me/c636223/v636223248/34938/t1lKrWNWWro.jpg'
                     )
-                ],
-                doc=[
-                    VKDoc(
+                ),
+                dict(
+                    video=VKVideo(
+                        owner_id=239068454, object_id=171222918, title='Арабская ночь', description=None,
+                        duration=time(0, 0, 57), date_time=datetime(2015, 1, 26, 3, 31, 3),
+                        views_count=179954, adding_date=None, player_link=None, link=None
+                    )
+                ),
+                dict(
+                    photo=VKPhoto(
+                        owner_id=33151248, object_id=430441958, album_id=235405921, album=None,
+                        date_time=datetime(2016, 8, 30, 15, 25, 44), user_id=None, text=None,
+                        link='https://pp.vk.me/c630731/v630731248/4fc7c/SxOzgVokHx8.jpg'
+                    )
+                ),
+                dict(
+                    doc=VKDoc(
                         owner_id=33151248, object_id=437638505, title='o-SEB-facebook.jpg', size=309626, ext='jpg',
                         link='https://psv4.vk.me/c810332/u33151248/docs/568f49ec97c6/o-SEB-facebook.jpg?extra='
                              'TRh7RRKRBMR13_rCM7QeM2Avn9ydUzIWel9j_26ONar-'
                              'dTEtbai1wfMog5_mmrB7zTH0HwsWfJAC1xMVioqOyLwd6WP-7y4yz4vGkuMGIFdmg8jB99iGwVtr'
                     )
-                ],
-                note=[
-                    VKNote(
-                        owner_id=33151248, object_id=11850515, title='note title', text=None,
-                        date_time=datetime(2016, 10, 3, 23, 47, 16), comments_count=0
+                ),
+                dict(
+                    audio=VKAudio(
+                        owner_id=2000012511, object_id=456239374, artist='Ludovico Einaudi',
+                        title="In un'altra vita", duration=time(0, 9, 55),
+                        date_time=datetime(2016, 10, 3, 23, 49, 0),
+                        genre="Classical", lyrics_id=11400950,
+                        link='https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra='
+                             'uQMvvJy9sTqWFU1DTxk90_g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0'
+                             'vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2'
                     )
-                ],
-                poll=[
-                    VKPoll(
+                ),
+                dict(
+                    poll=VKPoll(
                         owner_id=33151248, object_id=240277467, question='test',
                         answers=[
                             {'rate': 14.29, 'text': 'option1', 'id': 801878765, 'votes': 1},
@@ -325,27 +341,14 @@ class TestModels(unittest.TestCase):
                         ],
                         anonymous=False, date_time=datetime(2016, 10, 3, 23, 48, 59), votes_count=7
                     )
-                ],
-                photo=[
-                    VKPhoto(
-                        owner_id=33151248, object_id=435501272, album_id=-23, album='graffiti',
-                        date_time=datetime(2016, 10, 3, 23, 47, 56), user_id=None, text=None,
-                        link='https://pp.vk.me/c636223/v636223248/34938/t1lKrWNWWro.jpg'
-                    ),
-                    VKPhoto(
-                        owner_id=33151248, object_id=430441958, album_id=235405921, album=None,
-                        date_time=datetime(2016, 8, 30, 15, 25, 44), user_id=None, text=None,
-                        link='https://pp.vk.me/c630731/v630731248/4fc7c/SxOzgVokHx8.jpg'
+                ),
+                dict(
+                    note=VKNote(
+                        owner_id=33151248, object_id=11850515, title='note title', text=None,
+                        date_time=datetime(2016, 10, 3, 23, 47, 16), comments_count=0
                     )
-                ],
-                video=[
-                    VKVideo(
-                        owner_id=239068454, object_id=171222918, title='Арабская ночь', description=None,
-                        duration=time(0, 0, 57), date_time=datetime(2015, 1, 26, 3, 31, 3),
-                        views_count=179954, adding_date=None, player_link=None, link=None
-                    )
-                ]
-            ),
+                )
+            ],
             date_time=datetime(2016, 10, 3, 23, 49, 14), likes_count=1, reposts_count=0, comments_count=0
 
         )
@@ -369,4 +372,3 @@ class TestModels(unittest.TestCase):
     def test_vk_post_from_raw(self):
         post = VKPost.from_raw(self.raw_post)
         self.assertEqual(post, self.post)
-
