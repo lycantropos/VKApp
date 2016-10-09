@@ -54,13 +54,13 @@ class CallRepeater:
     last_call_time = time.time()
 
     @classmethod
-    def make_periodic(cls, period_in_sec: float) -> Callable[[VoidFunction], Callable]:
+    def make_periodic(cls, period_in_sec: float) -> Callable[[VoidFunction], VoidFunction]:
         """Decorator with parameter for making functions periodically launched"""
 
         if period_in_sec <= 0.:
             raise ValueError("Non-positive period: {}".format(period_in_sec))
 
-        def launch_periodically(function: VoidFunction) -> Callable:
+        def launch_periodically(function: VoidFunction) -> VoidFunction:
             def launched_periodically(*args, **kwargs):
                 while not cls.call_event.wait(cls.last_call_time - time.time()):
                     function(*args, **kwargs)
@@ -82,13 +82,13 @@ class CallDelayer:
     last_call_time = time.time()
 
     @classmethod
-    def make_delayed(cls, delay_in_seconds: float) -> Callable[[VoidFunction], Callable]:
+    def make_delayed(cls, delay_in_seconds: float) -> Callable[[VoidFunction], VoidFunction]:
         """Decorator with parameter for making functions launched with minimal delay between calls"""
 
         if delay_in_seconds <= 0.:
             raise ValueError("Non-positive delay: {}".format(delay_in_seconds))
 
-        def launch_with_delay(function: VoidFunction) -> Callable:
+        def launch_with_delay(function: VoidFunction) -> VoidFunction:
             def launched_with_delay(*args, **kwargs):
                 cls.last_call_time += delay_in_seconds
                 function(*args, **kwargs)
