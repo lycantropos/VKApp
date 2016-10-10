@@ -418,7 +418,7 @@ class VKAudio(VKFileAttachment):
             title=raw_vk_object['title'].strip(),
             duration=(datetime.min + timedelta(seconds=raw_vk_object['duration'])).time(),
             date_time=datetime.fromtimestamp(raw_vk_object['date']),
-            genre=AUDIO_GENRES_IDS_GENRES.get(raw_vk_object['genre_id'], None),
+            genre=AUDIO_GENRES_IDS_GENRES.get(raw_vk_object.get('genre_id'), None),
             lyrics_id=raw_vk_object.get('lyrics_id', None),
             link=raw_vk_object['url'] or None
         )
