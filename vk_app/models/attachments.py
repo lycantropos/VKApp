@@ -1,7 +1,8 @@
 import os
+import re
 import shutil
 from datetime import datetime, time, timedelta
-from typing import List
+from typing import List, Dict
 
 from vk_app.services.loading import download
 from vk_app.utils import check_dir, get_year_month_date, get_valid_dirs, find_file, get_normalized_file_name, get_repr
@@ -272,7 +273,7 @@ class VKFileAttachment(VKAttachment):
 
 
 def link_key_sort_key(link_key: str):
-    return int(link_key.split('_')[-1])
+    return int(re.sub(r'\D', '0', link_key.split('_')[-1]))
 
 
 class VKPhoto(VKFileAttachment):
@@ -495,32 +496,30 @@ class VKVideo(VKFileAttachment):
         return video_file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
+    def from_raw(cls, raw_video: dict) -> VKFileAttachment:
         return cls(
-            owner_id=raw_vk_object['owner_id'],
-            object_id=raw_vk_object['id'],
-            title=raw_vk_object['title'].strip(),
-            description=raw_vk_object['description'] or None,
-            duration=(datetime.min + timedelta(seconds=raw_vk_object['duration'])).time(),
-            date_time=datetime.fromtimestamp(raw_vk_object['date']),
-            adding_date=datetime.fromtimestamp(raw_vk_object['adding_date'])
-            if 'adding_date' in raw_vk_object else None,
-            views_count=raw_vk_object['views'],
-            player_link=raw_vk_object.get('player', None),
-            link=cls.get_link(raw_vk_object)
+            owner_id=raw_video['owner_id'],
+            object_id=raw_video['id'],
+            title=raw_video['title'].strip(),
+            description=raw_video['description'] or None,
+            duration=(datetime.min + timedelta(seconds=raw_video['duration'])).time(),
+            date_time=datetime.fromtimestamp(raw_video['date']),
+            adding_date=datetime.fromtimestamp(raw_video['adding_date'])
+            if 'adding_date' in raw_video else None,
+            views_count=raw_video['views'],
+            **cls.get_links(raw_video)
         )
 
     @staticmethod
-    def get_link(raw_video: dict) -> str:
-        video_links = raw_video.get('files', dict())
-        if video_links and 'external' not in video_links:
-            video_links_keys = list(video_links.keys())
-            video_links_keys.sort(key=link_key_sort_key)
+    def get_links(raw_video: dict) -> Dict[str, str]:
+        links = raw_video.get('files', dict())
+        player_link = links.get('external') or raw_video.get('player')
+        links_keys = list(links.keys())
+        links_keys.sort(key=link_key_sort_key)
 
-            highest_res_link_key = video_links_keys[-1]
-            highest_res_link = video_links[highest_res_link_key]
+        link = links[links_keys[-1]] if links_keys else None
 
-            return highest_res_link
+        return dict(link=link, player_link=player_link)
 
 
 class VKDoc(VKFileAttachment):
