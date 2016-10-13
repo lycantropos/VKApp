@@ -49,55 +49,57 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
 VoidFunction = Callable[..., None]
 
 
-class CallRepeater:
-    call_event = threading.Event()
-    last_call_time = time.time()
+def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction]:
+    """Decorator with parameter for making functions periodically launched"""
 
-    @classmethod
-    def make_periodic(cls, period_in_sec: float) -> Callable[[VoidFunction], VoidFunction]:
-        """Decorator with parameter for making functions periodically launched"""
+    if period_in_sec <= 0.:
+        raise ValueError("Non-positive period: {}".format(period_in_sec))
 
-        if period_in_sec <= 0.:
-            raise ValueError("Non-positive period: {}".format(period_in_sec))
+    class CallRepeater:
+        call_event = threading.Event()
+        last_call_time = time.time()
 
-        def launch_periodically(function: VoidFunction) -> VoidFunction:
+        def launch_periodically(self, function: VoidFunction) -> VoidFunction:
             def launched_periodically(*args, **kwargs):
-                while not cls.call_event.wait(cls.last_call_time - time.time()):
+                while not self.call_event.wait(self.last_call_time - time.time()):
                     function(*args, **kwargs)
-                    cls.last_call_time += period_in_sec
+                    self.last_call_time += period_in_sec
                     logging.debug(
                         "Next call of `{}` will be at {}".format(
                             function.__name__,
-                            datetime.datetime.fromtimestamp(cls.last_call_time).isoformat(' ')
+                            datetime.datetime.fromtimestamp(self.last_call_time).isoformat(' ')
                         )
                     )
 
             return launched_periodically
 
-        return launch_periodically
+    call_repeater = CallRepeater()
+
+    return call_repeater.launch_periodically
 
 
-class CallDelayer:
-    call_event = threading.Event()
-    last_call_time = time.time()
+def make_delayed(delay_in_seconds: float) -> Callable[[VoidFunction], VoidFunction]:
+    """Decorator with parameter for making functions launched with minimal delay between calls"""
 
-    @classmethod
-    def make_delayed(cls, delay_in_seconds: float) -> Callable[[VoidFunction], VoidFunction]:
-        """Decorator with parameter for making functions launched with minimal delay between calls"""
+    if delay_in_seconds <= 0.:
+        raise ValueError("Non-positive delay: {}".format(delay_in_seconds))
 
-        if delay_in_seconds <= 0.:
-            raise ValueError("Non-positive delay: {}".format(delay_in_seconds))
+    class CallDelayer:
+        def __init__(self):
+            self.call_event = threading.Event()
+            self.last_call_time = time.time()
 
-        def launch_with_delay(function: VoidFunction) -> VoidFunction:
+        def launch_with_delay(self, function: VoidFunction) -> VoidFunction:
             def launched_with_delay(*args, **kwargs):
-                cls.last_call_time += delay_in_seconds
+                self.last_call_time += delay_in_seconds
                 function(*args, **kwargs)
-                wait_sec = cls.last_call_time - time.time()
-                cls.call_event.wait(wait_sec)
+                wait_sec = self.last_call_time - time.time()
+                self.call_event.wait(wait_sec)
 
             return launched_with_delay
 
-        return launch_with_delay
+    call_delayer = CallDelayer()
+    return call_delayer.launch_with_delay
 
 
 def get_year_month_date(date_time: datetime.datetime, sep='.') -> str:
