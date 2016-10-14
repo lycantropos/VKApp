@@ -5,7 +5,7 @@ import os
 import threading
 import time
 from collections import OrderedDict
-from typing import Callable, List
+from typing import Callable, List, Type, Any
 
 from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
 from sqlalchemy import Interval
@@ -46,23 +46,24 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
         raise NotImplementedError("It is available to map columns by class's initializing only for its children")
 
 
-VoidFunction = Callable[..., None]
+AnyFunction = Callable[..., Any]
 
 
-def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction]:
+def make_periodic(period_in_sec: float) -> Callable[AnyFunction, AnyFunction]:
     """Decorator with parameter for making functions periodically launched"""
 
     if period_in_sec <= 0.:
         raise ValueError("Non-positive period: {}".format(period_in_sec))
 
     class CallRepeater:
-        call_event = threading.Event()
-        last_call_time = time.time()
+        def __init__(self):
+            self.call_event = threading.Event()
+            self.last_call_time = time.time()
 
-        def launch_periodically(self, function: VoidFunction) -> VoidFunction:
+        def launch_periodically(self, function: AnyFunction) -> AnyFunction:
             def launched_periodically(*args, **kwargs):
                 while not self.call_event.wait(self.last_call_time - time.time()):
-                    function(*args, **kwargs)
+                    res = function(*args, **kwargs)
                     self.last_call_time += period_in_sec
                     logging.debug(
                         "Next call of `{}` will be at {}".format(
@@ -70,6 +71,7 @@ def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction
                             datetime.datetime.fromtimestamp(self.last_call_time).isoformat(' ')
                         )
                     )
+                    return res
 
             return launched_periodically
 
@@ -78,7 +80,7 @@ def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction
     return call_repeater.launch_periodically
 
 
-def make_delayed(delay_in_seconds: float) -> Callable[[VoidFunction], VoidFunction]:
+def make_delayed(delay_in_seconds: float) -> Callable[AnyFunction, AnyFunction]:
     """Decorator with parameter for making functions launched with minimal delay between calls"""
 
     if delay_in_seconds <= 0.:
@@ -89,12 +91,13 @@ def make_delayed(delay_in_seconds: float) -> Callable[[VoidFunction], VoidFuncti
             self.call_event = threading.Event()
             self.last_call_time = time.time()
 
-        def launch_with_delay(self, function: VoidFunction) -> VoidFunction:
+        def launch_with_delay(self, function: AnyFunction) -> AnyFunction:
             def launched_with_delay(*args, **kwargs):
                 self.last_call_time += delay_in_seconds
-                function(*args, **kwargs)
+                res = function(*args, **kwargs)
                 wait_sec = self.last_call_time - time.time()
                 self.call_event.wait(wait_sec)
+                return res
 
             return launched_with_delay
 
