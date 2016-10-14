@@ -49,7 +49,7 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
 AnyFunction = Callable[..., Any]
 
 
-def make_periodic(period_in_sec: float) -> Callable[AnyFunction, AnyFunction]:
+def make_periodic(period_in_sec: float) -> Callable[[AnyFunction], AnyFunction]:
     """Decorator with parameter for making functions periodically launched"""
 
     if period_in_sec <= 0.:
@@ -80,7 +80,7 @@ def make_periodic(period_in_sec: float) -> Callable[AnyFunction, AnyFunction]:
     return call_repeater.launch_periodically
 
 
-def make_delayed(delay_in_seconds: float) -> Callable[AnyFunction, AnyFunction]:
+def make_delayed(delay_in_seconds: float) -> Callable[[AnyFunction], AnyFunction]:
     """Decorator with parameter for making functions launched with minimal delay between calls"""
 
     if delay_in_seconds <= 0.:
