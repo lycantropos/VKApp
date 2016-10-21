@@ -5,7 +5,7 @@ from datetime import datetime, time, timedelta
 from typing import List, Dict
 
 from vk_app.services.loading import download
-from vk_app.utils import check_dir, get_year_month_date, get_valid_dirs, find_file, get_normalized_file_name, get_repr
+from vk_app.utils import check_dir, find_file, get_normalized_file_name, get_repr
 
 VK_ID_FORMAT = '{owner_id}_{object_id}'
 
@@ -32,6 +32,9 @@ class VKObject:
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash(self.vk_id)
+
     def __repr__(self):
         return get_repr(self)
 
@@ -40,7 +43,7 @@ class VKObject:
         """Must be overridden by inheritors"""
 
 
-class VKAttachment(VKObject):
+class VKAttachable(VKObject):
     """
     Abstract class for working with VK media attachments in wall posts
 
@@ -55,7 +58,7 @@ class VKAttachment(VKObject):
         """
 
 
-class VKPage(VKAttachment):
+class VKPage(VKAttachable):
     """
     Implements working with VK wiki-pages
 
@@ -87,7 +90,7 @@ class VKPage(VKAttachment):
         return 'page'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
         return cls(
             owner_id=-raw_vk_object['group_id'],
             object_id=raw_vk_object['id'],
@@ -103,7 +106,7 @@ class VKPage(VKAttachment):
         )
 
 
-class VKNote(VKAttachment):
+class VKNote(VKAttachable):
     """
     Implements working with VK notes
 
@@ -127,7 +130,7 @@ class VKNote(VKAttachment):
         return 'note'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -138,7 +141,7 @@ class VKNote(VKAttachment):
         )
 
 
-class VKPoll(VKAttachment):
+class VKPoll(VKAttachable):
     """
     Implements working with VK polls
 
@@ -163,7 +166,7 @@ class VKPoll(VKAttachment):
         return 'poll'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -175,7 +178,7 @@ class VKPoll(VKAttachment):
         )
 
 
-class VKPhotoAlbum(VKAttachment):
+class VKPhotoAlbum(VKAttachable):
     """
     Implements working with VK photo albums
 
@@ -200,7 +203,7 @@ class VKPhotoAlbum(VKAttachment):
         return 'album'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -212,7 +215,7 @@ class VKPhotoAlbum(VKAttachment):
         )
 
 
-class VKFileAttachment(VKAttachment):
+class VKFileAttachable(VKAttachable):
     """
     Abstract class for working with VK downloadable attachments like photos, audios and etc.
 
@@ -246,7 +249,7 @@ class VKFileAttachment(VKAttachment):
             self.download(path)
 
     def download(self, path: str):
-        """Must be overridden by inheritors"""
+        """Downloads Must be overridden by inheritors"""
 
     def get_file_content(self, path: str, **kwargs) -> bytearray:
         file_path = self.get_file_path(path, **kwargs)
@@ -257,26 +260,48 @@ class VKFileAttachment(VKAttachment):
 
     def get_file_path(self, path: str, **kwargs) -> str:
         file_name = self.get_file_name(**kwargs)
-        file_subdirs = self.get_file_subdirs(**kwargs)
+        file_subdirs = self.get_file_subdirs()
         file_path = os.path.join(path, *file_subdirs, file_name)
         return file_path
 
-    def get_file_subdirs(self, **kwargs) -> List[str]:
+    def get_file_subdirs(self) -> List[str]:
         """
-        Should return list of subdirectories names for file to be located at
-
-        Must be overridden by inheritors
+        Returns list of subdirectories names for file to be located at
         """
+        return []
 
     def get_file_name(self, **kwargs) -> str:
         """Must be overridden by inheritors"""
+
+    @classmethod
+    def identify_getUploadServer_method(cls, dst_type: str) -> str:
+        """
+        Returns name of VK API method to get URL address of upload server with
+
+        more info about VK API methods at https://vk.com/dev/methods
+
+        :param dst_type: specific type of destination if supported. Ex. for class 'VKPhoto':
+         dst_type='wall'
+         to get method name for receiving image upload on community/user wall server URL
+        """
+
+    @classmethod
+    def identify_save_method(cls, dst_type: str):
+        """
+        Returns name of VK API method to save VK objects with
+
+        more info about VK API methods at https://vk.com/dev/methods
+        :param dst_type: specific type of destination if supported. Ex. for class 'VKPhoto':
+         dst_type='wall'
+         to get method name for image uploading on community/user wall
+        """
 
 
 def link_key_sort_key(link_key: str):
     return int(re.sub(r'\D', '0', link_key.split('_')[-1]))
 
 
-class VKPhoto(VKFileAttachment):
+class VKPhoto(VKFileAttachable):
     """
     Implements working with VK photos
 
@@ -314,11 +339,6 @@ class VKPhoto(VKFileAttachment):
 
         download(self.link, image_path)
 
-    def get_file_subdirs(self, **kwargs) -> List[str]:
-        year_month_date = get_year_month_date(self.date_time)
-        image_subdirs = get_valid_dirs(self.album, year_month_date)
-        return image_subdirs
-
     def get_file_name(self, **kwargs) -> str:
         image_name = self.vk_id
         if 'marked' in kwargs and kwargs['marked'] is True:
@@ -328,7 +348,7 @@ class VKPhoto(VKFileAttachment):
         return image_name
 
     @classmethod
-    def from_raw(cls, raw_photo: dict) -> VKFileAttachment:
+    def from_raw(cls, raw_photo: dict) -> VKFileAttachable:
         return cls(
             owner_id=raw_photo['owner_id'],
             object_id=raw_photo['id'],
@@ -356,6 +376,44 @@ class VKPhoto(VKFileAttachment):
 
         return highest_res_link
 
+    @classmethod
+    def identify_getUploadServer_method(cls, dst_type: str) -> str:
+        if dst_type == 'default':
+            return 'photos.getUploadServer'
+        elif dst_type == 'owner':
+            return 'photos.getOwnerPhotoUploadServer'
+        elif dst_type == 'wall':
+            return 'photos.getWallUploadServer'
+        elif dst_type == 'message':
+            return 'photos.getMessagesUploadServer'
+        elif dst_type == 'chat':
+            return 'photos.getChatUploadServer'
+        elif dst_type == 'market':
+            return 'photos.getMarketUploadServer'
+        elif dst_type == 'market_album':
+            return 'photos.getMarketAlbumUploadServer'
+        else:
+            raise ValueError('Unknown photo uploading destination type: {}'.format(dst_type))
+
+    @classmethod
+    def identify_save_method(cls, dst_type: str):
+        if dst_type == 'default':
+            return 'photos.save'
+        elif dst_type == 'owner':
+            return 'photos.saveOwnerPhoto'
+        elif dst_type == 'wall':
+            return 'photos.saveWallPhoto'
+        elif dst_type == 'message':
+            return 'photos.saveMessagesPhoto'
+        elif dst_type == 'chat':
+            return 'messages.setChatPhoto'
+        elif dst_type == 'market':
+            return 'photos.saveMarketPhoto'
+        elif dst_type == 'market_album':
+            return 'photos.saveMarketAlbumPhoto'
+        else:
+            raise ValueError('Unknown photo uploading destination type: {}'.format(dst_type))
+
 
 SPECIAL_ALBUMS_IDS_TITLES = {
     -6: 'profile',
@@ -365,14 +423,14 @@ SPECIAL_ALBUMS_IDS_TITLES = {
 }
 
 
-class VKAudio(VKFileAttachment):
+class VKAudio(VKFileAttachable):
     """
     Implements working with VK audios
 
     more info about `Audio` objects at https://vk.com/dev/audio_object
     """
-    FILE_NAME_FORMAT = "{artist} - {title}"
-    FILE_EXTENSION = ".mp3"
+    FILE_NAME_FORMAT = '{artist} - {title}'
+    FILE_EXTENSION = '.mp3'
 
     def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
                  genre: str = None, lyrics_id: int = None, link: str = None):
@@ -402,16 +460,12 @@ class VKAudio(VKFileAttachment):
 
         download(self.link, audio_file_path)
 
-    def get_file_subdirs(self, **kwargs) -> List[str]:
-        audio_file_subdirs = [self.artist]
-        return audio_file_subdirs
-
     def get_file_name(self, **kwargs) -> str:
         file_name = get_normalized_file_name(VKAudio.FILE_NAME_FORMAT.format(**self.__dict__), VKAudio.FILE_EXTENSION)
         return file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -424,33 +478,41 @@ class VKAudio(VKFileAttachment):
             link=raw_vk_object['url'] or None
         )
 
+    @classmethod
+    def identify_getUploadServer_method(cls, dst_type: str = None):
+        return 'audio.getUploadServer'
+
+    @classmethod
+    def identify_save_method(cls, dst_type: str = None):
+        return 'audio.save'
+
 
 AUDIO_GENRES_IDS_GENRES = {
-    1: "Rock",
-    2: "Pop",
-    3: "Rap & Hip-Hop",
-    4: "Easy Listening",
-    5: "Dance & House",
-    6: "Instrumental",
-    7: "Metal",
-    21: "Alternative",
-    8: "Dubstep",
-    1001: "Jazz & Blues",
-    10: "Drum & Bass",
-    11: "Trance",
-    12: "Chanson",
-    13: "Ethnic",
-    14: "Acoustic & Vocal",
-    15: "Reggae",
-    16: "Classical",
-    17: "Indie Pop",
-    19: "Speech",
-    22: "Electropop & Disco",
-    18: "Other"
+    1: 'Rock',
+    2: 'Pop',
+    3: 'Rap & Hip-Hop',
+    4: 'Easy Listening',
+    5: 'Dance & House',
+    6: 'Instrumental',
+    7: 'Metal',
+    21: 'Alternative',
+    8: 'Dubstep',
+    1001: 'Jazz & Blues',
+    10: 'Drum & Bass',
+    11: 'Trance',
+    12: 'Chanson',
+    13: 'Ethnic',
+    14: 'Acoustic & Vocal',
+    15: 'Reggae',
+    16: 'Classical',
+    17: 'Indie Pop',
+    19: 'Speech',
+    22: 'Electropop & Disco',
+    18: 'Other'
 }
 
 
-class VKVideo(VKFileAttachment):
+class VKVideo(VKFileAttachable):
     """
     Implements working with VK videos
 
@@ -487,16 +549,12 @@ class VKVideo(VKFileAttachment):
 
         download(self.link, video_file_path)
 
-    def get_file_subdirs(self, **kwargs) -> List[str]:
-        video_file_subdirs = [get_year_month_date(self.date_time)]
-        return video_file_subdirs
-
     def get_file_name(self, **kwargs) -> str:
         video_file_name = get_normalized_file_name(self.title, VKVideo.FILE_EXTENSION)
         return video_file_name
 
     @classmethod
-    def from_raw(cls, raw_video: dict) -> VKFileAttachment:
+    def from_raw(cls, raw_video: dict) -> VKFileAttachable:
         return cls(
             owner_id=raw_video['owner_id'],
             object_id=raw_video['id'],
@@ -521,8 +579,16 @@ class VKVideo(VKFileAttachment):
 
         return dict(link=link, player_link=player_link)
 
+    @classmethod
+    def identify_getUploadServer_method(cls, dst_type: str = None):
+        return 'video.save'
 
-class VKDoc(VKFileAttachment):
+    @classmethod
+    def identify_save_method(cls, dst_type: str = None):
+        return 'video.save'
+
+
+class VKDoc(VKFileAttachable):
     """
     Implements working with VK documents
 
@@ -553,16 +619,12 @@ class VKDoc(VKFileAttachment):
 
         download(self.link, doc_file_path)
 
-    def get_file_subdirs(self, **kwargs) -> List[str]:
-        doc_file_subdirs = [self.ext]
-        return doc_file_subdirs
-
     def get_file_name(self, **kwargs) -> str:
         file_name = get_normalized_file_name('.'.join(self.title.split('.')[:-1]), self.ext)
         return file_name
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachment:
+    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -571,3 +633,12 @@ class VKDoc(VKFileAttachment):
             ext=raw_vk_object['ext'],
             link=raw_vk_object['url'] or None
         )
+
+    @classmethod
+    def identify_getUploadServer_method(cls, dst_type: str):
+        if dst_type == 'default':
+            return 'photos.getUploadServer'
+        elif dst_type == 'wall':
+            return 'photos.getWallUploadServer'
+        else:
+            raise ValueError('Unknown document uploading destination type: {}'.format(dst_type))

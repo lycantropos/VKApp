@@ -1,8 +1,8 @@
 import unittest
 from datetime import datetime, time
 
-from vk_app.models.attachments import VKPhoto, VKAudio, VKVideo, VKDoc, VKNote, VKPoll
-from vk_app.models.post import VKPost
+from attachables import VKPhoto, VKAudio, VKVideo, VKDoc, VKNote, VKPoll
+from post import VKPost
 
 
 class TestModels(unittest.TestCase):
@@ -38,8 +38,8 @@ class TestModels(unittest.TestCase):
         self.raw_audio = dict(
             id=456239153,
             owner_id=33151248,
-            artist="Blink 182",
-            title="I'm Lost Without You",
+            artist='Blink 182',
+            title='I\'m Lost Without You',
             duration=189,
             date=1475376942,
             url='https://psv4.vk.me/c4405/u729766/audios/e827863eec4b.mp3?extra='
@@ -49,8 +49,8 @@ class TestModels(unittest.TestCase):
             genre_id=1
         )
         self.audio = VKAudio(
-            owner_id=33151248, object_id=456239153, artist="Blink 182", title="I'm Lost Without You",
-            duration=time(0, 3, 9), date_time=datetime(2016, 10, 2, 9, 55, 42), genre="Rock", lyrics_id=11814435,
+            owner_id=33151248, object_id=456239153, artist='Blink 182', title='I\'m Lost Without You',
+            duration=time(0, 3, 9), date_time=datetime(2016, 10, 2, 9, 55, 42), genre='Rock', lyrics_id=11814435,
             link='https://psv4.vk.me/c4405/u729766/audios/e827863eec4b.mp3?extra='
                  'boaG2GtdV78oAJzBtTlyr9ko3pue4CpcY9MiirqedU5LbqHOYLxm9_m1Tu_fB1uG-'
                  'Xc78dRNLLIK2--1MjiK91MW0nV-g3C77CI0JIUmfpHXImJ0_PUC77pWCeBIEWc3ii-ajmFXXxc'
@@ -59,7 +59,7 @@ class TestModels(unittest.TestCase):
         self.raw_video = dict(
             id=170594858,
             owner_id=33151248,
-            title="Grouplove - I'm With You [Official Music Video]",
+            title='Grouplove - I\'m With You [Official Music Video]',
             duration=330,
             description='',
             date=1415048962,
@@ -101,7 +101,7 @@ class TestModels(unittest.TestCase):
             repeat=0
         )
         self.video = VKVideo(
-            owner_id=33151248, object_id=170594858, title="Grouplove - I'm With You [Official Music Video]",
+            owner_id=33151248, object_id=170594858, title='Grouplove - I\'m With You [Official Music Video]',
             description=None, duration=time(0, 5, 30), date_time=datetime(2014, 11, 4, 3, 9, 22), views_count=221,
             player_link='https://vk.com/video_ext.php?oid=33151248&id=170594858&hash=6af70b680de137f8&__ref='
                         'vk.api&api_hash=1475515983cb93631fcefce81573_GMZTCNJRGI2DQ',
@@ -166,98 +166,98 @@ class TestModels(unittest.TestCase):
         )
 
         self.raw_post = dict(
-            id=3000, from_id=33151248, owner_id=33151248, date=1475513354, post_type="post", text="&#128567;",
+            id=3000, from_id=33151248, owner_id=33151248, date=1475513354, post_type='post', text='&#128567;',
             can_edit=1, can_delete=1, can_pin=1,
             attachments=[
                 dict(
-                    type="photo",
+                    type='photo',
                     photo=dict(
                         id=435501272, album_id=-23,
                         owner_id=33151248,
-                        photo_75="https://pp.vk.me/c636223/v636223248/34934/R_hAK8m0JD0.jpg",
-                        photo_130="https://pp.vk.me/c636223/v636223248/34935/KM9H5qIU9zc.jpg",
-                        photo_604="https://pp.vk.me/c636223/v636223248/34936/gTSsz726TIo.jpg",
-                        photo_807="https://pp.vk.me/c636223/v636223248/34937/LEFha8J80BM.jpg",
-                        photo_1280="https://pp.vk.me/c636223/v636223248/34938/t1lKrWNWWro.jpg",
-                        width=1176, height=588, text="", date=1475513276, access_key="853346876714b6fc16"
+                        photo_75='https://pp.vk.me/c636223/v636223248/34934/R_hAK8m0JD0.jpg',
+                        photo_130='https://pp.vk.me/c636223/v636223248/34935/KM9H5qIU9zc.jpg',
+                        photo_604='https://pp.vk.me/c636223/v636223248/34936/gTSsz726TIo.jpg',
+                        photo_807='https://pp.vk.me/c636223/v636223248/34937/LEFha8J80BM.jpg',
+                        photo_1280='https://pp.vk.me/c636223/v636223248/34938/t1lKrWNWWro.jpg',
+                        width=1176, height=588, text='', date=1475513276, access_key='853346876714b6fc16'
                     )
                 ),
                 dict(
-                    type="video",
+                    type='video',
                     video=dict(
-                        id=171222918, owner_id=239068454, title="Арабская ночь", duration=57, description="",
+                        id=171222918, owner_id=239068454, title='Арабская ночь', duration=57, description='',
                         date=1422221463, views=179954, comments=211,
-                        photo_130="https://pp.vk.me/c543504/u239068454/video/s_58f5159c.jpg",
-                        photo_320="https://pp.vk.me/c543504/u239068454/video/l_648bbca6.jpg",
-                        photo_800="https://pp.vk.me/c543504/u239068454/video/x_364dac38.jpg",
-                        access_key="175761fb2d96ea9e3a", repeat=1, can_add=1
+                        photo_130='https://pp.vk.me/c543504/u239068454/video/s_58f5159c.jpg',
+                        photo_320='https://pp.vk.me/c543504/u239068454/video/l_648bbca6.jpg',
+                        photo_800='https://pp.vk.me/c543504/u239068454/video/x_364dac38.jpg',
+                        access_key='175761fb2d96ea9e3a', repeat=1, can_add=1
                     )
                 ),
                 dict(
-                    type="photo",
+                    type='photo',
                     photo=dict(
                         id=430441958, album_id=235405921, owner_id=33151248,
-                        photo_75="https://pp.vk.me/c630731/v630731248/4fc77/08Yn_3H7sh0.jpg",
-                        photo_130="https://pp.vk.me/c630731/v630731248/4fc78/CjmjCnjc_jc.jpg",
-                        photo_604="https://pp.vk.me/c630731/v630731248/4fc79/MvmFFvwhn8k.jpg",
-                        photo_807="https://pp.vk.me/c630731/v630731248/4fc7a/aD8ZIlnkwT0.jpg",
-                        photo_1280="https://pp.vk.me/c630731/v630731248/4fc7b/Ha--FXqt3KE.jpg",
-                        photo_2560="https://pp.vk.me/c630731/v630731248/4fc7c/SxOzgVokHx8.jpg",
-                        width=2560, height=1707, text="", date=1472545544, access_key="40c37e8eeaa37e4dbf"
+                        photo_75='https://pp.vk.me/c630731/v630731248/4fc77/08Yn_3H7sh0.jpg',
+                        photo_130='https://pp.vk.me/c630731/v630731248/4fc78/CjmjCnjc_jc.jpg',
+                        photo_604='https://pp.vk.me/c630731/v630731248/4fc79/MvmFFvwhn8k.jpg',
+                        photo_807='https://pp.vk.me/c630731/v630731248/4fc7a/aD8ZIlnkwT0.jpg',
+                        photo_1280='https://pp.vk.me/c630731/v630731248/4fc7b/Ha--FXqt3KE.jpg',
+                        photo_2560='https://pp.vk.me/c630731/v630731248/4fc7c/SxOzgVokHx8.jpg',
+                        width=2560, height=1707, text='', date=1472545544, access_key='40c37e8eeaa37e4dbf'
                     )
                 ),
                 dict(
-                    type="doc",
+                    type='doc',
                     doc=dict(
-                        id=437638505, owner_id=33151248, title="o-SEB-facebook.jpg", size=309626, ext="jpg",
-                        url="https://psv4.vk.me/c810332/u33151248/docs/568f49ec97c6/o-SEB-facebook.jpg?extra="
-                            "TRh7RRKRBMR13_rCM7QeM2Avn9ydUzIWel9j_26ONar-dTEtbai1wfMog5_"
-                            "mmrB7zTH0HwsWfJAC1xMVioqOyLwd6WP-7y4yz4vGkuMGIFdmg8jB99iGwVtr",
+                        id=437638505, owner_id=33151248, title='o-SEB-facebook.jpg', size=309626, ext='jpg',
+                        url='https://psv4.vk.me/c810332/u33151248/docs/568f49ec97c6/o-SEB-facebook.jpg?extra='
+                            'TRh7RRKRBMR13_rCM7QeM2Avn9ydUzIWel9j_26ONar-dTEtbai1wfMog5_'
+                            'mmrB7zTH0HwsWfJAC1xMVioqOyLwd6WP-7y4yz4vGkuMGIFdmg8jB99iGwVtr',
                         date=1467224041, type=4,
                         preview=dict(
                             photo=dict(
                                 sizes=[
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/m_c2b672ecec.jpg",
-                                        width=130, height=78, type="m"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/m_c2b672ecec.jpg',
+                                        width=130, height=78, type='m'
                                     ),
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/s_c2b672ecec.jpg",
-                                        width=100, height=60, type="s"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/s_c2b672ecec.jpg',
+                                        width=100, height=60, type='s'
                                     ),
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/x_c2b672ecec.jpg",
-                                        width=604, height=360, type="x"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/x_c2b672ecec.jpg',
+                                        width=604, height=360, type='x'
                                     ),
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/y_c2b672ecec.jpg",
-                                        width=807, height=481, type="y"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/y_c2b672ecec.jpg',
+                                        width=807, height=481, type='y'
                                     ),
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/z_c2b672ecec.jpg",
-                                        width=1280, height=762, type="z"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/z_c2b672ecec.jpg',
+                                        width=1280, height=762, type='z'
                                     ),
                                     dict(
-                                        src="https://pp.vk.me/c812736/u132472508/-3/o_c2b672ecec.jpg",
-                                        width=1536, height=914, type="o"
+                                        src='https://pp.vk.me/c812736/u132472508/-3/o_c2b672ecec.jpg',
+                                        width=1536, height=914, type='o'
                                     )
                                 ]
                             )
                         ),
-                        access_key="a9c64e3c4e37c82cfa")),
+                        access_key='a9c64e3c4e37c82cfa')),
                 dict(
-                    type="audio",
+                    type='audio',
                     audio=dict(
-                        id=456239374, owner_id=2000012511, artist="Ludovico Einaudi", title="In un'altra vita",
+                        id=456239374, owner_id=2000012511, artist='Ludovico Einaudi', title='In un\'altra vita',
                         duration=595, date=1475513340,
-                        url="https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra=uQMvvJy9sTqWFU1DTxk90_"
-                            "g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9"
-                            "a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2",
+                        url='https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra=uQMvvJy9sTqWFU1DTxk90_'
+                            'g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9'
+                            'a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2',
                         lyrics_id=11400950, album_id=2, genre_id=16
                     )
                 ),
                 dict(
-                    type="poll",
+                    type='poll',
                     poll=dict(
                         id=240277467, owner_id=33151248, created=1475513339, question='test', votes=7, answers=[
                             dict(
@@ -277,15 +277,15 @@ class TestModels(unittest.TestCase):
                     )
                 ),
                 dict(
-                    type="note",
+                    type='note',
                     note=dict(
                         id=11850515, owner_id=33151248, comments=0, read_comments=0, date=1475513236,
-                        title="note title",
-                        view_url="https://m.vk.com/note33151248_11850515?api_view=1ad8c2cf1beac3d1b58bc211bdf769"
+                        title='note title',
+                        view_url='https://m.vk.com/note33151248_11850515?api_view=1ad8c2cf1beac3d1b58bc211bdf769'
                     )
                 )
             ],
-            post_source=dict(type="vk"), comments=dict(count=0, can_post=1),
+            post_source=dict(type='vk'), comments=dict(count=0, can_post=1),
             likes=dict(count=1, user_likes=0, can_like=1, can_publish=0),
             reposts=dict(count=0, user_reposted=0)
         )
@@ -324,9 +324,9 @@ class TestModels(unittest.TestCase):
                 dict(
                     audio=VKAudio(
                         owner_id=2000012511, object_id=456239374, artist='Ludovico Einaudi',
-                        title="In un'altra vita", duration=time(0, 9, 55),
+                        title='In un\'altra vita', duration=time(0, 9, 55),
                         date_time=datetime(2016, 10, 3, 23, 49, 0),
-                        genre="Classical", lyrics_id=11400950,
+                        genre='Classical', lyrics_id=11400950,
                         link='https://cs4-3v4.vk-cdn.net/p24/c94608ff7b7048.mp3?extra='
                              'uQMvvJy9sTqWFU1DTxk90_g1sNbh47Uc01CMII0_CbD1BBhAYydqe9dB7OkWOUNl59m0'
                              'vrgVJgt7aGJoN8j8VVazs9ZvnvJV5onC9a5nhgkjrnv3okPymmp0XBW1gskQB6wOovpKdd-GjqF2'

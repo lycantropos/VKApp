@@ -5,14 +5,14 @@ import os
 import threading
 import time
 from collections import OrderedDict
-from typing import Callable, List, Type, Any
+from typing import Callable, List, Any
 
-from sqlalchemy import (Boolean, Column, DateTime, Integer, LargeBinary, String)
+from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String
 from sqlalchemy import Interval
 from sqlalchemy import Time
 
-__all__ = ['make_periodic', 'make_delayed', 'get_year_month_date', 'get_normalized_file_name', 'find_file', 'check_dir',
-           'get_valid_dirs', 'map_non_primary_columns_by_ancestor', 'get_all_subclasses', 'get_repr']
+__all__ = ['make_periodic', 'make_delayed', 'get_year_month_date', 'get_normalized_file_name', 'find_file',
+           'check_dir', 'get_valid_dirs', 'map_non_primary_columns_by_ancestor', 'get_all_subclasses', 'get_repr']
 
 PYTHON_SQLALCHEMY_TYPES = {
     bool: Boolean,
@@ -28,50 +28,50 @@ PYTHON_SQLALCHEMY_TYPES = {
 def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
     if issubclass(inheritor, ancestor):
         ancestor_initializer_signature = inspect.signature(ancestor.__init__)
-        arguments = ancestor_initializer_signature.parameters
-
-        for argument in arguments.values():
-            if argument.name != 'self':
-                if argument.annotation in PYTHON_SQLALCHEMY_TYPES:
-                    setattr(
-                        inheritor, argument.name,
-                        Column(
-                            PYTHON_SQLALCHEMY_TYPES[argument.annotation], nullable=argument.default is None
-                        )
+        names_parameters = ancestor_initializer_signature.parameters
+        non_self_parameters = list(names_parameters.values())[1:]
+        for parameter in non_self_parameters:
+            if parameter.annotation in PYTHON_SQLALCHEMY_TYPES:
+                setattr(
+                    inheritor, parameter.name,
+                    Column(
+                        PYTHON_SQLALCHEMY_TYPES[parameter.annotation], nullable=parameter.default is None
                     )
-                else:
-                    logging.warning(
-                        "There is no appropriate SQLAlchemy type found for `{}`".format(argument.annotation.__name__))
+                )
+            else:
+                logging.warning(
+                    'There is no appropriate SQLAlchemy type found for `{}`'.format(parameter.annotation.__name__)
+                )
     else:
-        raise NotImplementedError("It is available to map columns by class's initializing only for its children")
+        raise NotImplementedError('It is available to map columns by class\'s initializing only for its children')
 
 
 AnyFunction = Callable[..., Any]
+VoidFunction = Callable[..., None]
 
 
-def make_periodic(period_in_sec: float) -> Callable[[AnyFunction], AnyFunction]:
+def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction]:
     """Decorator with parameter for making functions periodically launched"""
 
     if period_in_sec <= 0.:
-        raise ValueError("Non-positive period: {}".format(period_in_sec))
+        raise ValueError('Non-positive period: {}'.format(period_in_sec))
 
     class CallRepeater:
         def __init__(self):
             self.call_event = threading.Event()
             self.last_call_time = time.time()
 
-        def launch_periodically(self, function: AnyFunction) -> AnyFunction:
+        def launch_periodically(self, function: VoidFunction) -> VoidFunction:
             def launched_periodically(*args, **kwargs):
                 while not self.call_event.wait(self.last_call_time - time.time()):
-                    res = function(*args, **kwargs)
+                    function(*args, **kwargs)
                     self.last_call_time += period_in_sec
                     logging.debug(
-                        "Next call of `{}` will be at {}".format(
+                        'Next call of `{}` will be at {}'.format(
                             function.__name__,
                             datetime.datetime.fromtimestamp(self.last_call_time).isoformat(' ')
                         )
                     )
-                    return res
 
             return launched_periodically
 
@@ -84,7 +84,7 @@ def make_delayed(delay_in_seconds: float) -> Callable[[AnyFunction], AnyFunction
     """Decorator with parameter for making functions launched with minimal delay between calls"""
 
     if delay_in_seconds <= 0.:
-        raise ValueError("Non-positive delay: {}".format(delay_in_seconds))
+        raise ValueError('Non-positive delay: {}'.format(delay_in_seconds))
 
     class CallDelayer:
         def __init__(self):
@@ -96,6 +96,12 @@ def make_delayed(delay_in_seconds: float) -> Callable[[AnyFunction], AnyFunction
                 self.last_call_time += delay_in_seconds
                 res = function(*args, **kwargs)
                 wait_sec = self.last_call_time - time.time()
+                logging.debug(
+                    'Next call of `{}` will be available at {}'.format(
+                        function.__name__,
+                        datetime.datetime.fromtimestamp(self.last_call_time).isoformat(' ')
+                    )
+                )
                 self.call_event.wait(wait_sec)
                 return res
 
@@ -160,8 +166,8 @@ def get_repr_template_by_cls(cls: type) -> str:
     cls_initializer_signature = inspect.signature(cls.__init__)
     arguments = OrderedDict(cls_initializer_signature.parameters)
     arguments.pop('self')
-    cls_repr = "{cls_name}({{}})".format(cls_name=cls.__name__)
+    cls_repr = '{cls_name}({{}})'.format(cls_name=cls.__name__)
     # '!r' flag forces to get `repr()` of object
-    init_signature = ', '.join("{argument}={{{argument}!r}}".format(argument=argument) for argument in arguments)
+    init_signature = ', '.join('{argument}={{{argument}!r}}'.format(argument=argument) for argument in arguments)
     cls_repr = cls_repr.format(init_signature)
     return cls_repr

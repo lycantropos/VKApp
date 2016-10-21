@@ -42,8 +42,8 @@ class App:
         self.api_version = api_version
         self.api_session = API(self.session, v=self.api_version)
 
-    def get_items(self, method: str, **params):
-        """Returns VK countable objects (wall posts, audios, photo albums, photos, videos, etc.)
+    def get_all_objects(self, method: str, **params):
+        """Returns all VK countable objects (wall posts, audios, photo albums, photos, videos, etc.)
 
         :param method: name of API method. Ex.: 'photos.get'
 
@@ -56,18 +56,17 @@ class App:
         :return:
         """
         params['count'] = 100
+        params.setdefault('offset', 0)
 
         key = 'items'
-        offset = params.get('offset', 0)
-        items = []
+        items = list()
         while True:
-            params['offset'] = offset
             params_json = json.dumps(params)
             code = VK_SCRIPT_GET_ALL.format(method=method, key=key, params=params_json)
             code_res = self.api_session.execute(code=code)
             items += code_res[key]
-            offset = code_res['offset']
-            if offset >= code_res['count']:
+            params['offset'] = code_res['offset']
+            if params['offset'] >= code_res['count']:
                 return items
 
     def get_upload_server_url(self, method: str, **params) -> str:
@@ -103,20 +102,19 @@ class App:
             response = session.post(upload_url, files=files)
             params.update(response.json())
 
-        raw_vk_objects = self.api_session.__call__(method, **params)
-        return raw_vk_objects
+        return self.api_session.__call__(method, **params)
 
 
 VK_SCRIPT_GET_ALL = """var params = {params};
-var max_count = params.count, init_offset = params.offset, key = "{key}", offset_count = init_offset;
-var vk_api_req = API.{method}(params), c = vk_api_req.count, items_count = vk_api_req[key], i = 1;
+var count = params.count, offset = params.offset, key = "{key}";
+var res = API.{method}(params);
+var total_count = res.count, items = res[key], api_calls = 1;
 
-while (i < 25 && offset_count + max_count <= c) {{
-    offset_count = i * max_count + init_offset;
-    params.offset = offset_count;
-    items_count = items_count + API.{method}(params)[key];
-    i = i + 1;
+while (api_calls < 25 && params.offset + count <= total_count) {{
+    params.offset = params.offset + count;
+    items = items + API.{method}(params)[key];
+    api_calls = api_calls + 1;
 }}
 
-return {{count: c, items: items_count, offset: offset_count + max_count, max_c: max_count}};
+return {{"count": count, "items": items, "offset": params.offset}};
 """

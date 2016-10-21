@@ -8,7 +8,7 @@ from vk_app.utils import get_year_month_date, find_file, check_dir, get_valid_di
 class TestUtils(unittest.TestCase):
     def setUp(self):
         self.date_time = datetime(2016, 9, 30, 23, 55, 8)
-        self.year_month_date_str = "2016-09"
+        self.year_month_date_str = '2016-09'
         self.file_path = __file__
         self.file_name = os.path.basename(self.file_path)
         self.file_dir = os.path.dirname(self.file_path)
