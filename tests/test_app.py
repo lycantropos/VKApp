@@ -1,8 +1,8 @@
 import datetime
 import unittest
 
-from attachables import VKAudio, VKDoc, VKNote, VKPhoto, VKPoll, VKVideo
-from post import VKPost
+from vk_app.attachables import VKAudio, VKDoc, VKNote, VKPhoto, VKPoll, VKVideo
+from vk_app.post import VKPost
 from vk_app import App
 
 
