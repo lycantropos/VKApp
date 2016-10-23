@@ -249,7 +249,16 @@ class VKFileAttachable(VKAttachable):
             self.download(path)
 
     def download(self, path: str):
-        """Downloads Must be overridden by inheritors"""
+        """Downloads `VKFileAttachable` object into file system"""
+        file_subdirs = self.get_file_subdirs()
+        check_dir(path, *file_subdirs)
+
+        file_dir = os.path.join(path, *file_subdirs)
+        file_name = self.get_file_name()
+        file_path = os.path.join(file_dir, file_name)
+
+        if not os.path.exists(file_path):
+            download(self.link, file_path)
 
     def get_file_content(self, path: str, **kwargs) -> bytearray:
         file_path = self.get_file_path(path, **kwargs)
@@ -271,6 +280,9 @@ class VKFileAttachable(VKAttachable):
         return []
 
     def get_file_name(self, **kwargs) -> str:
+        """Must be overridden by inheritors"""
+
+    def get_file_extension(self, **kwargs) -> str:
         """Must be overridden by inheritors"""
 
     @classmethod
@@ -307,8 +319,6 @@ class VKPhoto(VKFileAttachable):
 
     more info about `Photo` objects at https://vk.com/dev/photo
     """
-    FILE_EXTENSION = '.jpg'
-    MARKED_FILE_EXTENSION = '.png'
 
     def __init__(self, owner_id: int, object_id: int, album_id: int, album: str, date_time: datetime,
                  user_id: int = None, text: str = None, link: str = None):
@@ -329,23 +339,13 @@ class VKPhoto(VKFileAttachable):
     def key(cls) -> str:
         return 'photo'
 
-    def download(self, path: str):
-        image_subdirs = self.get_file_subdirs()
-        check_dir(path, *image_subdirs)
-
-        image_dir = os.path.join(path, *image_subdirs)
-        image_name = self.get_file_name()
-        image_path = os.path.join(image_dir, image_name)
-
-        download(self.link, image_path)
-
     def get_file_name(self, **kwargs) -> str:
         image_name = self.vk_id
-        if 'marked' in kwargs and kwargs['marked'] is True:
-            image_name = get_normalized_file_name(image_name, VKPhoto.MARKED_FILE_EXTENSION)
-        else:
-            image_name = get_normalized_file_name(image_name, VKPhoto.FILE_EXTENSION)
+        image_name = get_normalized_file_name(image_name, self.get_file_extension(**kwargs))
         return image_name
+
+    def get_file_extension(self, **kwargs) -> str:
+        return '.png' if 'marked' in kwargs and kwargs['marked'] is True else '.jpg'
 
     @classmethod
     def from_raw(cls, raw_photo: dict) -> VKFileAttachable:
@@ -430,7 +430,6 @@ class VKAudio(VKFileAttachable):
     more info about `Audio` objects at https://vk.com/dev/audio_object
     """
     FILE_NAME_FORMAT = '{artist} - {title}'
-    FILE_EXTENSION = '.mp3'
 
     def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
                  genre: str = None, lyrics_id: int = None, link: str = None):
@@ -450,19 +449,13 @@ class VKAudio(VKFileAttachable):
     def key(cls):
         return 'audio'
 
-    def download(self, path: str):
-        audio_file_subdirs = self.get_file_subdirs()
-        check_dir(path, *audio_file_subdirs)
-
-        audio_file_dir = os.path.join(path, *audio_file_subdirs)
-        audio_file_name = self.get_file_name()
-        audio_file_path = os.path.join(audio_file_dir, audio_file_name)
-
-        download(self.link, audio_file_path)
-
     def get_file_name(self, **kwargs) -> str:
-        file_name = get_normalized_file_name(VKAudio.FILE_NAME_FORMAT.format(**self.__dict__), VKAudio.FILE_EXTENSION)
-        return file_name
+        audio_file_name = VKAudio.FILE_NAME_FORMAT.format(**self.__dict__)
+        audio_file_name = get_normalized_file_name(audio_file_name, self.get_file_extension())
+        return audio_file_name
+
+    def get_file_extension(self, **kwargs) -> str:
+        return '.mp3'
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:
@@ -518,7 +511,6 @@ class VKVideo(VKFileAttachable):
 
     more info about `Video` objects at https://vk.com/dev/video_object
     """
-    FILE_EXTENSION = '.avi'
 
     def __init__(self, owner_id: int, object_id: int, title: str, description: str, duration: time, date_time: datetime,
                  views_count: int, adding_date: datetime = None, player_link: str = None, link: str = None):
@@ -539,19 +531,13 @@ class VKVideo(VKFileAttachable):
     def key(cls):
         return 'video'
 
-    def download(self, path: str):
-        video_file_subdirs = self.get_file_subdirs()
-        check_dir(path, *video_file_subdirs)
-
-        video_file_dir = os.path.join(path, *video_file_subdirs)
-        video_file_name = self.get_file_name()
-        video_file_path = os.path.join(video_file_dir, video_file_name)
-
-        download(self.link, video_file_path)
-
     def get_file_name(self, **kwargs) -> str:
-        video_file_name = get_normalized_file_name(self.title, VKVideo.FILE_EXTENSION)
+        video_file_name = self.title
+        video_file_name = get_normalized_file_name(video_file_name, self.get_file_extension())
         return video_file_name
+
+    def get_file_extension(self, **kwargs) -> str:
+        return '.mp4'
 
     @classmethod
     def from_raw(cls, raw_video: dict) -> VKFileAttachable:
@@ -609,19 +595,12 @@ class VKDoc(VKFileAttachable):
     def key(cls):
         return 'doc'
 
-    def download(self, path: str):
-        doc_file_subdirs = self.get_file_subdirs()
-        check_dir(path, *doc_file_subdirs)
-
-        doc_file_dir = os.path.join(path, *doc_file_subdirs)
-        doc_file_name = self.get_file_name()
-        doc_file_path = os.path.join(doc_file_dir, doc_file_name)
-
-        download(self.link, doc_file_path)
-
     def get_file_name(self, **kwargs) -> str:
         file_name = get_normalized_file_name('.'.join(self.title.split('.')[:-1]), self.ext)
         return file_name
+
+    def get_file_extension(self, **kwargs) -> str:
+        return self.ext
 
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:

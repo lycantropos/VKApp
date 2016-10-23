@@ -116,5 +116,5 @@ while (api_calls < 25 && params.offset + count <= total_count) {{
     api_calls = api_calls + 1;
 }}
 
-return {{"count": count, "items": items, "offset": params.offset}};
+return {{"count": total_count, "items": items, "offset": params.offset}};
 """
