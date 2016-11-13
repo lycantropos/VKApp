@@ -5,7 +5,7 @@ from datetime import datetime, time, timedelta
 from typing import List, Dict
 
 from vk_app.services.loading import download
-from vk_app.utils import check_dir, find_file, get_normalized_file_name, get_repr
+from vk_app.utils import check_dir, find_file, get_normalized_file_name, get_repr, obj_to_dict
 
 VK_ID_FORMAT = '{owner_id}_{object_id}'
 
@@ -41,6 +41,9 @@ class VKObject:
     @classmethod
     def from_raw(cls, raw_vk_object: dict) -> type:
         """Must be overridden by inheritors"""
+
+    def to_dict(self):
+        return obj_to_dict(self)
 
 
 class VKAttachable(VKObject):
@@ -98,8 +101,8 @@ class VKPage(VKAttachable):
             title=raw_vk_object['title'],
             who_can_view=raw_vk_object['who_can_view'],
             who_can_edit=raw_vk_object['who_can_edit'],
-            date_time=datetime.fromtimestamp(raw_vk_object['created']),
-            edited_date_time=datetime.fromtimestamp(raw_vk_object['edited']),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['created']),
+            edited_date_time=datetime.utcfromtimestamp(raw_vk_object['edited']),
             views_count=raw_vk_object['views'],
             html=raw_vk_object['html'],
             source=raw_vk_object.get('source', None),
@@ -136,7 +139,7 @@ class VKNote(VKAttachable):
             object_id=raw_vk_object['id'],
             title=raw_vk_object['title'],
             text=raw_vk_object.get('text', None),
-            date_time=datetime.fromtimestamp(raw_vk_object['date']),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['date']),
             comments_count=raw_vk_object['comments'],
         )
 
@@ -173,7 +176,7 @@ class VKPoll(VKAttachable):
             question=raw_vk_object['question'].strip(),
             answers=raw_vk_object['answers'],
             anonymous=raw_vk_object['anonymous'] == 1,
-            date_time=datetime.fromtimestamp(raw_vk_object['created']),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['created']),
             votes_count=raw_vk_object['votes']
         )
 
@@ -209,8 +212,8 @@ class VKPhotoAlbum(VKAttachable):
             object_id=raw_vk_object['id'],
             title=raw_vk_object['title'],
             description=raw_vk_object['description'] or None,
-            date_time=datetime.fromtimestamp(raw_vk_object['created']),
-            updated_date_time=datetime.fromtimestamp(raw_vk_object['updated']),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['created']),
+            updated_date_time=datetime.utcfromtimestamp(raw_vk_object['updated']),
             photos_count=raw_vk_object['size']
         )
 
@@ -248,7 +251,7 @@ class VKFileAttachable(VKAttachable):
         else:
             self.download(path)
 
-    def download(self, path: str):
+    def download(self, path: str, **kwargs) -> str:
         """Downloads `VKFileAttachable` object into file system"""
         file_subdirs = self.get_file_subdirs()
         check_dir(path, *file_subdirs)
@@ -257,8 +260,9 @@ class VKFileAttachable(VKAttachable):
         file_name = self.get_file_name()
         file_path = os.path.join(file_dir, file_name)
 
-        if not os.path.exists(file_path):
+        if self.link and not os.path.exists(file_path):
             download(self.link, file_path)
+        return file_path
 
     def get_file_content(self, path: str, **kwargs) -> bytearray:
         file_path = self.get_file_path(path, **kwargs)
@@ -356,7 +360,7 @@ class VKPhoto(VKFileAttachable):
             album_id=raw_photo['album_id'],
             album=SPECIAL_ALBUMS_IDS_TITLES.get(raw_photo['album_id'], None),
             text=raw_photo['text'] or None,
-            date_time=datetime.fromtimestamp(raw_photo['date']),
+            date_time=datetime.utcfromtimestamp(raw_photo['date']),
             link=cls.get_link(raw_photo)
         )
 
@@ -429,7 +433,7 @@ class VKAudio(VKFileAttachable):
 
     more info about `Audio` objects at https://vk.com/dev/audio_object
     """
-    FILE_NAME_FORMAT = '{artist} - {title}'
+    FILE_NAME_FORMAT = '{self.artist} - {self.title}'
 
     def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
                  genre: str = None, lyrics_id: int = None, link: str = None):
@@ -450,7 +454,7 @@ class VKAudio(VKFileAttachable):
         return 'audio'
 
     def get_file_name(self, **kwargs) -> str:
-        audio_file_name = VKAudio.FILE_NAME_FORMAT.format(**self.__dict__)
+        audio_file_name = VKAudio.FILE_NAME_FORMAT.format(self=self)
         audio_file_name = get_normalized_file_name(audio_file_name, self.get_file_extension())
         return audio_file_name
 
@@ -465,7 +469,7 @@ class VKAudio(VKFileAttachable):
             artist=raw_vk_object['artist'].strip(),
             title=raw_vk_object['title'].strip(),
             duration=(datetime.min + timedelta(seconds=raw_vk_object['duration'])).time(),
-            date_time=datetime.fromtimestamp(raw_vk_object['date']),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['date']),
             genre=AUDIO_GENRES_IDS_GENRES.get(raw_vk_object.get('genre_id'), None),
             lyrics_id=raw_vk_object.get('lyrics_id', None),
             link=raw_vk_object['url'] or None
@@ -547,8 +551,8 @@ class VKVideo(VKFileAttachable):
             title=raw_video['title'].strip(),
             description=raw_video['description'] or None,
             duration=(datetime.min + timedelta(seconds=raw_video['duration'])).time(),
-            date_time=datetime.fromtimestamp(raw_video['date']),
-            adding_date=datetime.fromtimestamp(raw_video['adding_date'])
+            date_time=datetime.utcfromtimestamp(raw_video['date']),
+            adding_date=datetime.utcfromtimestamp(raw_video['adding_date'])
             if 'adding_date' in raw_video else None,
             views_count=raw_video['views'],
             **cls.get_links(raw_video)

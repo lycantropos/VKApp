@@ -5,12 +5,6 @@ from typing import Dict, List, Any
 from vk_app.attachables import VKObject, VKAttachable
 from vk_app.utils import get_all_subclasses
 
-ATTACHMENTS_KEY_VK_ATTACHABLE = dict(
-    (inheritor.key(), inheritor)
-    for inheritor in get_all_subclasses(VKAttachable)
-    if inheritor.key() is not None
-)
-
 
 class VKPost(VKObject):
     """
@@ -18,6 +12,11 @@ class VKPost(VKObject):
 
     more info about `Post` objects at https://vk.com/dev/post
     """
+    VK_ATTACHABLE_BY_KEY = dict(
+        (inheritor.key(), inheritor)
+        for inheritor in get_all_subclasses(VKAttachable)
+        if inheritor.key() is not None
+    )
 
     def __init__(self, owner_id: int, object_id: int, from_id: int, created_by: int,
                  text: str, attachments: List[Dict[str, VKAttachable]], date_time: datetime,
@@ -53,8 +52,8 @@ class VKPost(VKObject):
             comments_count=int(raw_post['comments']['count'])
         )
 
-    @staticmethod
-    def attachments_from_raw(raw_attachments: List[Dict[str, Any]], required_keys: List[str] = None,
+    @classmethod
+    def attachments_from_raw(cls, raw_attachments: List[Dict[str, Any]], required_keys: List[str] = None,
                              forbidden_keys: List[str] = None) -> List[Dict[str, VKAttachable]]:
         if not required_keys or not forbidden_keys or \
                 not any(required_key in forbidden_keys for required_key in required_keys):
@@ -66,7 +65,7 @@ class VKPost(VKObject):
                         (not forbidden_keys or key not in forbidden_keys):
                     try:
                         attachments.append(
-                            {key: ATTACHMENTS_KEY_VK_ATTACHABLE[key].from_raw(content)}
+                            {key: cls.VK_ATTACHABLE_BY_KEY[key].from_raw(content)}
                         )
                     except KeyError:
                         logging.warning('No support found for attachment type: "{}"'.format(key))

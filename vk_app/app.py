@@ -63,10 +63,10 @@ class App:
         while True:
             params_json = json.dumps(params)
             code = VK_SCRIPT_GET_ALL.format(method=method, key=key, params=params_json)
-            code_res = self.api_session.execute(code=code)
+            code_res = self.api_session.execute(code=code, **params)
             items += code_res[key]
             params['offset'] = code_res['offset']
-            if params['offset'] >= code_res['count']:
+            if len(items) >= code_res['count']:
                 return items
 
     def get_upload_server_url(self, method: str, **params) -> str:

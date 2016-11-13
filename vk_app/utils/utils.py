@@ -7,12 +7,15 @@ import time
 from collections import OrderedDict
 from typing import Callable, List, Any
 
+from PIL import Image
 from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String
 from sqlalchemy import Interval
 from sqlalchemy import Time
 
-__all__ = ['make_periodic', 'make_delayed', 'get_year_month_date', 'get_normalized_file_name', 'find_file',
-           'check_dir', 'get_valid_dirs', 'map_non_primary_columns_by_ancestor', 'get_all_subclasses', 'get_repr']
+__all__ = ['make_periodic', 'make_delayed', 'get_year_month_date',
+           'get_normalized_file_name', 'find_file', 'show_captcha',
+           'check_dir', 'get_valid_dirs', 'map_non_primary_columns_by_ancestor',
+           'get_all_subclasses', 'get_repr', 'obj_to_dict']
 
 PYTHON_SQLALCHEMY_TYPES = {
     bool: Boolean,
@@ -43,7 +46,7 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
                     'There is no appropriate SQLAlchemy type found for `{}`'.format(parameter.annotation.__name__)
                 )
     else:
-        raise NotImplementedError('It is available to map columns by class\'s initializing only for its children')
+        raise NotImplementedError('It is available to map columns by class\'s initializer only for its children')
 
 
 AnyFunction = Callable[..., Any]
@@ -148,6 +151,13 @@ def get_valid_dirs(*dirs) -> List[str]:
     return valid_dirs
 
 
+def show_captcha(path: str):
+    with Image.open(path) as img:
+        size = tuple([4 * x for x in img.size])
+        img = img.resize(size)
+        img.show(path)
+
+
 def get_all_subclasses(cls: type) -> List[type]:
     all_subclasses = cls.__subclasses__() + [
         subsubclass
@@ -163,11 +173,21 @@ def get_repr(instance: object) -> str:
 
 
 def get_repr_template_by_cls(cls: type) -> str:
-    cls_initializer_signature = inspect.signature(cls.__init__)
-    arguments = OrderedDict(cls_initializer_signature.parameters)
+    initializer_signature = inspect.signature(cls.__init__)
+    arguments = OrderedDict(initializer_signature.parameters)
     arguments.pop('self')
     cls_repr = '{cls_name}({{}})'.format(cls_name=cls.__name__)
     # '!r' flag forces to get `repr()` of object
     init_signature = ', '.join('{argument}={{{argument}!r}}'.format(argument=argument) for argument in arguments)
     cls_repr = cls_repr.format(init_signature)
     return cls_repr
+
+
+def obj_to_dict(obj) -> dict:
+    initializer_signature = inspect.signature(obj.__init__)
+    arguments = OrderedDict(initializer_signature.parameters)
+    obj_dict = dict(
+        (argument, getattr(obj, argument))
+        for argument in arguments
+    )
+    return obj_dict

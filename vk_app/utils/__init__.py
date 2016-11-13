@@ -1,1 +1,1 @@
-from .utils import *
+from vk_app.utils.utils import *
