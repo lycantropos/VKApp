@@ -2,6 +2,7 @@ import datetime
 import inspect
 import logging
 import os
+import re
 import threading
 import time
 from collections import OrderedDict
@@ -149,6 +150,21 @@ def get_valid_dirs(*dirs) -> List[str]:
     valid_dirs = filter(None, dirs)
     valid_dirs = list(valid_dirs)
     return valid_dirs
+
+
+CAPTCHA_RE = re.compile('\w+', re.UNICODE)
+
+
+def solve_captcha(path: str):
+    show_captcha(path)
+    while True:
+        captcha_key = input('Please enter the captcha key '
+                            'from image located at {}:\n'
+                            .format(path))
+        if not CAPTCHA_RE.match(captcha_key):
+            logging.info('Incorrect captcha format, repeat input.')
+        else:
+            break
 
 
 def show_captcha(path: str):

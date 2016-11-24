@@ -1,8 +1,60 @@
 import json
-from typing import List, Tuple
+import os
+from functools import wraps
+from typing import List, Tuple, Callable, Any
 
 import requests
+from services import download
+from utils.utils import solve_captcha
 from vk import API, Session, AuthSession
+from vk.exceptions import VkAPIError
+
+
+def captchured(captcha_img_path: str = os.path.expanduser('~'), captcha_solver: Callable[[str], str] = solve_captcha):
+    """
+    Decorator with parameters for taking care of
+    sending too frequent requests to VK API
+    with possibility of entering CAPTCHA text
+
+    :param captcha_img_path: file path for CAPTCHA image to be stored at,
+    user's home directory by default
+    :param captcha_solver: function which receives path to CAPTCHA image and returns CAPTCHA text
+    :return: decorator
+    """
+
+    def resolve_captcha(function: Callable[[Any], Any]):
+        """
+        :param function: function which sends requests to VK API
+        and may require CAPTCHA in cases of frequent requests
+        :return: function with ability of resolving CAPTCHA
+        """
+
+        @wraps(function)
+        def resolved_captcha(*args, **kwargs):
+            """
+            Runs function in infinite loop
+            until correct text CAPTCHA entered
+
+            :param args: positional function arguments
+            :param kwargs: keyword function arguments
+            :return: result of wrapped function or runs forever
+            """
+            while True:
+                try:
+                    return function(*args, **kwargs)
+                except VkAPIError as error:
+                    if error.code == error.CAPTCHA_NEEDED:
+                        download(error.captcha_img, captcha_img_path)
+                        captcha_key = captcha_solver(captcha_img_path)
+                        os.remove(captcha_img_path)
+                        kwargs['captcha_sid'] = error.captcha_sid
+                        kwargs['captcha_key'] = captcha_key
+                    else:
+                        raise error
+
+        return resolved_captcha
+
+    return resolve_captcha
 
 
 class App:
