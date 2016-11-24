@@ -14,7 +14,7 @@ from sqlalchemy import Interval
 from sqlalchemy import Time
 
 __all__ = ['make_periodic', 'make_delayed', 'get_year_month_date',
-           'get_normalized_file_name', 'find_file', 'show_captcha',
+           'get_normalized_file_name', 'find_file', 'solve_captcha',
            'check_dir', 'get_valid_dirs', 'map_non_primary_columns_by_ancestor',
            'get_all_subclasses', 'get_repr', 'obj_to_dict']
 

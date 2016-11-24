@@ -5,12 +5,13 @@ from typing import List, Tuple, Callable, Any
 
 import requests
 from services import download
-from utils.utils import solve_captcha
+from vk_app.utils import solve_captcha
 from vk import API, Session, AuthSession
 from vk.exceptions import VkAPIError
 
 
-def captchured(captcha_img_path: str = os.path.expanduser('~'), captcha_solver: Callable[[str], str] = solve_captcha):
+def captchured(captcha_img_path: str = os.path.join(os.path.expanduser('~'), 'captcha.png'),
+               captcha_solver: Callable[[str], str] = solve_captcha):
     """
     Decorator with parameters for taking care of
     sending too frequent requests to VK API
