@@ -4,7 +4,7 @@ from functools import wraps
 from typing import List, Tuple, Callable, Any
 
 import requests
-from services import download
+from vk_app.services import download
 from vk_app.utils import solve_captcha
 from vk import API, Session, AuthSession
 from vk.exceptions import VkAPIError
