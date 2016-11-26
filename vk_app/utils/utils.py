@@ -67,7 +67,7 @@ def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction
             self.last_call_time = time.time()
 
         def launch_periodically(self, function: VoidFunction) -> VoidFunction:
-            @wraps
+            @wraps(function)
             def launched_periodically(*args, **kwargs):
                 while not self.call_event.wait(self.last_call_time - time.time()):
                     function(*args, **kwargs)
@@ -98,7 +98,7 @@ def make_delayed(delay_in_seconds: float) -> Callable[[AnyFunction], AnyFunction
             self.last_call_time = time.time()
 
         def launch_with_delay(self, function: AnyFunction) -> AnyFunction:
-            @wraps
+            @wraps(function)
             def launched_with_delay(*args, **kwargs):
                 self.last_call_time += delay_in_seconds
                 res = function(*args, **kwargs)
