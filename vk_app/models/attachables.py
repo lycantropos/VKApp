@@ -1,15 +1,12 @@
-import os
 import re
-import shutil
 from datetime import datetime, time, timedelta
-from typing import List, Dict
+from typing import List, Dict, Any
 
-from vk_app.models.objects import VKAttachable
-from vk_app.services.loading import download
-from vk_app.utils import check_dir, find_file, get_normalized_file_name
+from vk_app.models.objects import VKAttachable, VKFileAttachable
+from vk_app.utils import get_normalized_file_name
 
 __all__ = ['VKPage', 'VKDoc', 'VKNote', 'VKPoll', 'VKPhotoAlbum',
-           'VKPhoto', 'VKAudio', 'VKVideo']
+           'VKSticker', 'VKPhoto', 'VKAudio', 'VKVideo']
 
 
 class VKPage(VKAttachable):
@@ -44,7 +41,7 @@ class VKPage(VKAttachable):
         return 'page'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKPage':
         return cls(
             owner_id=-raw_vk_object['group_id'],
             object_id=raw_vk_object['id'],
@@ -84,7 +81,7 @@ class VKNote(VKAttachable):
         return 'note'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKNote':
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -120,7 +117,7 @@ class VKPoll(VKAttachable):
         return 'poll'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKPoll':
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -157,7 +154,7 @@ class VKPhotoAlbum(VKAttachable):
         return 'album'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKPhotoAlbum':
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -169,108 +166,58 @@ class VKPhotoAlbum(VKAttachable):
         )
 
 
-class VKFileAttachable(VKAttachable):
-    """
-    Abstract class for working with VK downloadable attachments like photos, audios and etc.
+def get_photo_link(raw_object: Dict[str, Any]) -> str:
+    """Returns highest resolution link for photo-like attachable ('photo', 'sticker')"""
+    photo_link_keys = list(
+        raw_photo_key
+        for raw_photo_key in raw_object
+        if raw_photo_key.startswith('photo')
+    )
+    photo_link_keys.sort(key=link_key_sort_key)
 
-    more info about `Media Attachments` at https://vk.com/dev/attachments_w
-    """
+    highest_res_link_key = photo_link_keys[-1]
+    highest_res_link = raw_object[highest_res_link_key]
 
-    def __init__(self, owner_id: int, object_id: int, link: str = None):
-        super().__init__(owner_id, object_id)
-
-        # technical info fields
-        self.link = link
-
-    def __ne__(self, other):
-        return not self == other
-
-    def synchronize(self, path: str, files_paths=None):
-        file_name = self.get_file_name()
-        if files_paths is not None:
-            old_file_path = next((file_path
-                                  for file_path in files_paths
-                                  if file_name in file_path),
-                                 None)
-        else:
-            old_file_path = find_file(file_name, path)
-        if old_file_path is not None:
-            file_subdirs = self.get_file_subdirs()
-            check_dir(path, *file_subdirs, create=True)
-
-            file_dir = os.path.join(path, *file_subdirs)
-            file_path = os.path.join(file_dir, file_name)
-
-            shutil.move(old_file_path, file_path)
-        else:
-            self.download(path)
-
-    def download(self, path: str, **kwargs) -> str:
-        """Downloads `VKFileAttachable` object into file system"""
-        file_subdirs = self.get_file_subdirs()
-        check_dir(path, *file_subdirs, create=True)
-
-        file_dir = os.path.join(path, *file_subdirs)
-        file_name = self.get_file_name()
-        file_path = os.path.join(file_dir, file_name)
-
-        if self.link and not os.path.exists(file_path):
-            download(self.link, file_path)
-        return file_path
-
-    def get_file_content(self, path: str, **kwargs) -> bytearray:
-        file_path = self.get_file_path(path, **kwargs)
-        with open(file_path, 'rb') as file:
-            file_content = file.read()
-
-        return file_content
-
-    def get_file_path(self, path: str, **kwargs) -> str:
-        file_name = self.get_file_name(**kwargs)
-        file_subdirs = self.get_file_subdirs()
-        file_path = os.path.join(path, *file_subdirs, file_name)
-        return file_path
-
-    def get_file_subdirs(self) -> List[str]:
-        """
-        Returns list of subdirectories names for file to be located at
-        """
-        return []
-
-    def get_file_name(self, **kwargs) -> str:
-        """Must be overridden by inheritors"""
-
-    def get_file_extension(self, **kwargs) -> str:
-        """Must be overridden by inheritors"""
-
-    @classmethod
-    def getUploadServer_method(cls, dst_type: str) -> str:
-        """
-        Returns name of VK API method to get URL address of upload server with
-
-        more info about VK API methods at https://vk.com/dev/methods
-
-        :param dst_type: specific type of destination if supported.
-        Ex. for class 'VKPhoto':
-         dst_type='wall'
-         to get method name for receiving image upload on community/user wall server URL
-        """
-
-    @classmethod
-    def save_method(cls, dst_type: str):
-        """
-        Returns name of VK API method to save VK objects with
-
-        more info about VK API methods at https://vk.com/dev/methods
-        :param dst_type: specific type of destination if supported.
-        Ex. for class 'VKPhoto':
-         dst_type='wall'
-         to get method name for image uploading on community/user wall
-        """
+    return highest_res_link
 
 
 def link_key_sort_key(link_key: str):
     return int(re.sub(r'\D', '0', link_key.split('_')[-1]))
+
+
+class VKSticker(VKFileAttachable):
+    """
+    Implements working with VK stickers
+
+    more info about `Sticker` objects at https://vk.com/dev/attachments_m
+    """
+
+    def __init__(self, owner_id: int, object_id: int,
+                 height: int, width: int,
+                 link: str):
+        super().__init__(owner_id, object_id)
+
+        # technical info fields
+        self.width = width
+        self.height = height
+        self.link = link
+
+    @classmethod
+    def key(cls):
+        return 'sticker'
+
+    @classmethod
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKSticker':
+        # stickers are supplied in packs,
+        # each pack is a product,
+        # so product id is picked as owner id of given sticker
+        return cls(
+            owner_id=raw_vk_object['product_id'],
+            object_id=raw_vk_object['id'],
+            height=raw_vk_object['height'],
+            width=raw_vk_object['width'],
+            link=get_photo_link(raw_vk_object)
+        )
 
 
 class VKPhoto(VKFileAttachable):
@@ -309,7 +256,7 @@ class VKPhoto(VKFileAttachable):
         return '.png' if 'marked' in kwargs and kwargs['marked'] is True else '.jpg'
 
     @classmethod
-    def from_raw(cls, raw_photo: dict) -> VKFileAttachable:
+    def from_raw(cls, raw_photo: Dict[str, Any]) -> 'VKPhoto':
         return cls(
             owner_id=raw_photo['owner_id'],
             object_id=raw_photo['id'],
@@ -318,24 +265,8 @@ class VKPhoto(VKFileAttachable):
             album=SPECIAL_ALBUMS_IDS_TITLES.get(raw_photo['album_id'], None),
             text=raw_photo['text'] or None,
             date_time=datetime.utcfromtimestamp(raw_photo['date']),
-            link=cls.get_link(raw_photo)
+            link=get_photo_link(raw_photo)
         )
-
-    @staticmethod
-    def get_link(raw_photo: dict) -> str:
-        photo_link_key_prefix = VKPhoto.key()
-
-        photo_link_keys = list(
-            raw_photo_key
-            for raw_photo_key in raw_photo
-            if photo_link_key_prefix in raw_photo_key
-        )
-        photo_link_keys.sort(key=link_key_sort_key)
-
-        highest_res_link_key = photo_link_keys[-1]
-        highest_res_link = raw_photo[highest_res_link_key]
-
-        return highest_res_link
 
     @classmethod
     def getUploadServer_method(cls, dst_type: str) -> str:
@@ -357,7 +288,7 @@ class VKPhoto(VKFileAttachable):
             raise ValueError('Unknown photo uploading destination type: {}'.format(dst_type))
 
     @classmethod
-    def save_method(cls, dst_type: str):
+    def save_method(cls, dst_type: str) -> str:
         if dst_type == 'default':
             return 'photos.save'
         elif dst_type == 'owner':
@@ -408,7 +339,7 @@ class VKAudio(VKFileAttachable):
         self.duration = duration
 
     @classmethod
-    def key(cls):
+    def key(cls) -> str:
         return 'audio'
 
     def get_file_name(self, **kwargs) -> str:
@@ -420,7 +351,7 @@ class VKAudio(VKFileAttachable):
         return '.mp3'
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKAudio':
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -434,11 +365,11 @@ class VKAudio(VKFileAttachable):
         )
 
     @classmethod
-    def getUploadServer_method(cls, dst_type: str = None):
+    def getUploadServer_method(cls, dst_type: str = None) -> str:
         return 'audio.getUploadServer'
 
     @classmethod
-    def save_method(cls, dst_type: str = None):
+    def save_method(cls, dst_type: str = None) -> str:
         return 'audio.save'
 
 
@@ -476,8 +407,8 @@ class VKVideo(VKFileAttachable):
 
     def __init__(self, owner_id: int, object_id: int, title: str, description: str,
                  duration: time, date_time: datetime, views_count: int,
-                 adding_date: datetime = None, player_link: str = None,
-                 link: str = None):
+                 adding_date: datetime = None, access_key: str = None,
+                 player_link: str = None, link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # info fields
@@ -488,34 +419,37 @@ class VKVideo(VKFileAttachable):
         self.duration = duration
         self.date_time = date_time
         self.adding_date = adding_date
+        self.access_key = access_key
         self.views_count = views_count
         self.player_link = player_link
 
     @classmethod
-    def key(cls):
+    def key(cls) -> str:
         return 'video'
 
     def get_file_name(self, **kwargs) -> str:
         video_file_name = self.title
-        video_file_name = get_normalized_file_name(video_file_name, self.get_file_extension())
+        video_file_name = get_normalized_file_name(video_file_name,
+                                                   ext=self.get_file_extension())
         return video_file_name
 
     def get_file_extension(self, **kwargs) -> str:
         return '.mp4'
 
     @classmethod
-    def from_raw(cls, raw_video: dict) -> VKFileAttachable:
+    def from_raw(cls, raw_vk_object: Dict[str, Any]) -> 'VKVideo':
         return cls(
-            owner_id=raw_video['owner_id'],
-            object_id=raw_video['id'],
-            title=raw_video['title'].strip(),
-            description=raw_video['description'] or None,
-            duration=(datetime.min + timedelta(seconds=raw_video['duration'])).time(),
-            date_time=datetime.utcfromtimestamp(raw_video['date']),
-            adding_date=datetime.utcfromtimestamp(raw_video['adding_date'])
-            if 'adding_date' in raw_video else None,
-            views_count=raw_video['views'],
-            **cls.get_links(raw_video)
+            owner_id=raw_vk_object['owner_id'],
+            object_id=raw_vk_object['id'],
+            title=raw_vk_object['title'].strip(),
+            description=raw_vk_object['description'] or None,
+            duration=(datetime.min + timedelta(seconds=raw_vk_object['duration'])).time(),
+            date_time=datetime.utcfromtimestamp(raw_vk_object['date']),
+            adding_date=datetime.utcfromtimestamp(raw_vk_object['adding_date'])
+            if 'adding_date' in raw_vk_object else None,
+            access_key=raw_vk_object.get('access_key'),
+            views_count=raw_vk_object['views'],
+            **cls.get_links(raw_vk_object)
         )
 
     @staticmethod
@@ -530,11 +464,11 @@ class VKVideo(VKFileAttachable):
         return dict(link=link, player_link=player_link)
 
     @classmethod
-    def getUploadServer_method(cls, dst_type: str = None):
+    def getUploadServer_method(cls, dst_type: str = None) -> str:
         return 'video.save'
 
     @classmethod
-    def save_method(cls, dst_type: str = None):
+    def save_method(cls, dst_type: str = None) -> str:
         return 'video.save'
 
 
@@ -557,7 +491,7 @@ class VKDoc(VKFileAttachable):
         self.ext = ext
 
     @classmethod
-    def key(cls):
+    def key(cls) -> str:
         return 'doc'
 
     def get_file_name(self, **kwargs) -> str:
@@ -568,7 +502,7 @@ class VKDoc(VKFileAttachable):
         return self.ext
 
     @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> VKFileAttachable:
+    def from_raw(cls, raw_vk_object: dict) -> 'VKDoc':
         return cls(
             owner_id=raw_vk_object['owner_id'],
             object_id=raw_vk_object['id'],
@@ -579,7 +513,7 @@ class VKDoc(VKFileAttachable):
         )
 
     @classmethod
-    def getUploadServer_method(cls, dst_type: str):
+    def getUploadServer_method(cls, dst_type: str) -> str:
         if dst_type == 'default':
             return 'docs.getUploadServer'
         elif dst_type == 'wall':
@@ -588,5 +522,5 @@ class VKDoc(VKFileAttachable):
             raise ValueError('Unknown document uploading destination type: {}'.format(dst_type))
 
     @classmethod
-    def save_method(cls, dst_type: str = None):
+    def save_method(cls, dst_type: str = None) -> str:
         return 'docs.save'

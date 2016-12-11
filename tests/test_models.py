@@ -1,12 +1,23 @@
 import unittest
 from datetime import datetime, time
 
-from vk_app.models.attachables import VKPhoto, VKAudio, VKVideo, VKDoc, VKNote, VKPoll
-from vk_app.models.post import VKPost
+from vk_app.models import (VKSticker, VKPhoto, VKAudio, VKVideo,
+                           VKDoc, VKNote, VKPoll, VKPost)
 
 
 class TestModels(unittest.TestCase):
     def setUp(self):
+        self.raw_sticker = dict(product_id=75, id=2472,
+                                height=256, width=256,
+                                photo_64='https://vk.com/images/stickers/2472/64b.png',
+                                photo_128='https://vk.com/images/stickers/2472/128b.png',
+                                photo_256='https://vk.com/images/stickers/2472/256b.png',
+                                photo_352='https://vk.com/images/stickers/2472/352b.png',
+                                photo_512='https://vk.com/images/stickers/2472/512b.png')
+
+        self.sticker = VKSticker(owner_id=75, object_id=2472, height=256, width=256,
+                                 link='https://vk.com/images/stickers/2472/512b.png')
+
         self.raw_photo = dict(
             id=278184324,
             album_id=-6,
@@ -35,6 +46,7 @@ class TestModels(unittest.TestCase):
             date_time=datetime(2012, 2, 2, 3, 0, 22), text='',
             link='https://pp.vk.me/c10408/u4172580/-6/x_ee97448e.jpg'
         )
+
         self.raw_audio = dict(
             id=456239153,
             owner_id=33151248,
@@ -352,6 +364,10 @@ class TestModels(unittest.TestCase):
             date_time=datetime(2016, 10, 3, 23, 49, 14), likes_count=1, reposts_count=0, comments_count=0
 
         )
+
+    def test_vk_sticker_from_raw(self):
+        sticker = VKSticker.from_raw(self.raw_sticker)
+        self.assertEqual(sticker, self.sticker)
 
     def test_vk_photo_from_raw(self):
         photo = VKPhoto.from_raw(self.raw_photo)

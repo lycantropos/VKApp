@@ -3,7 +3,7 @@ import unittest
 
 from vk_app import App
 from vk_app.models.attachables import VKPhoto
-from vk_app.models.post import VKPost
+from vk_app.models.containers import VKPost
 
 
 class TestApp(unittest.TestCase):

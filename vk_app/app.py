@@ -95,6 +95,11 @@ class App:
         self.api_version = api_version
         self.api_session = API(self.session, v=self.api_version)
 
+    def __repr__(self):
+        return 'App:<app_id={self.app_id}, ' \
+               'user_login={self.user_login}, ' \
+               'api_version={self.api_version}>'.format(self=self)
+
     def get_all_objects(self, method: str, **params):
         """Returns all VK countable objects (wall posts, audios, photo albums, photos, videos, etc.)
 

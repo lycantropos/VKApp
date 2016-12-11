@@ -1,2 +1,2 @@
 from .attachables import *
-from .post import VKPost
+from .containers import *
