@@ -242,7 +242,7 @@ class VKFileAttachable(VKAttachable):
             old_file_path = find_file(file_name, path)
         if old_file_path is not None:
             file_subdirs = self.get_file_subdirs()
-            check_dir(path, *file_subdirs)
+            check_dir(path, *file_subdirs, create=True)
 
             file_dir = os.path.join(path, *file_subdirs)
             file_path = os.path.join(file_dir, file_name)
@@ -254,7 +254,7 @@ class VKFileAttachable(VKAttachable):
     def download(self, path: str, **kwargs) -> str:
         """Downloads `VKFileAttachable` object into file system"""
         file_subdirs = self.get_file_subdirs()
-        check_dir(path, *file_subdirs)
+        check_dir(path, *file_subdirs, create=True)
 
         file_dir = os.path.join(path, *file_subdirs)
         file_name = self.get_file_name()

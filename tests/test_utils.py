@@ -26,7 +26,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.valid_dirs, valid_dirs)
 
     def test_check_dir(self):
-        check_dir(self.file_dir, *self.valid_dirs)
+        check_dir(self.file_dir, *self.valid_dirs, create=True)
         test_dir = os.path.join(self.file_dir, *self.valid_dirs)
         self.assertTrue(os.path.exists(test_dir))
         for ind in range(len(self.valid_dirs)):

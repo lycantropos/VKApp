@@ -1,6 +1,7 @@
 import datetime
 import inspect
 import logging
+import logging.config
 import os
 import re
 import threading
@@ -10,13 +11,13 @@ from functools import wraps
 from typing import Callable, List, Any
 
 from PIL import Image
-from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String
-from sqlalchemy import Interval
-from sqlalchemy import Time
+from sqlalchemy import (Boolean, Column, DateTime, Integer,
+                        LargeBinary, String, Interval, Time)
 
 __all__ = ['make_periodic', 'make_delayed', 'get_year_month_date',
-           'get_normalized_file_name', 'find_file', 'solve_captcha',
-           'check_dir', 'get_valid_dirs', 'map_non_primary_columns_by_ancestor',
+           'get_normalized_file_name', 'find_file',
+           'set_logging_config', 'solve_captcha', 'check_dir',
+           'get_valid_dirs', 'map_non_primary_columns_by_ancestor',
            'get_all_subclasses', 'get_repr', 'obj_to_dict']
 
 PYTHON_SQLALCHEMY_TYPES = {
@@ -40,15 +41,19 @@ def map_non_primary_columns_by_ancestor(inheritor: type, ancestor: type):
                 setattr(
                     inheritor, parameter.name,
                     Column(
-                        PYTHON_SQLALCHEMY_TYPES[parameter.annotation], nullable=parameter.default is None
+                        PYTHON_SQLALCHEMY_TYPES[parameter.annotation],
+                        nullable=parameter.default is None
                     )
                 )
             else:
                 logging.warning(
-                    'There is no appropriate SQLAlchemy type found for `{}`'.format(parameter.annotation.__name__)
+                    'There is no appropriate SQLAlchemy type found for `{}`'
+                    .format(parameter.annotation.__name__)
                 )
     else:
-        raise NotImplementedError('It is available to map columns by class\'s initializer only for its children')
+        raise NotImplementedError('It is available to map columns '
+                                  'by class\'s initializer '
+                                  'only for its children')
 
 
 AnyFunction = Callable[..., Any]
@@ -75,7 +80,8 @@ def make_periodic(period_in_sec: float) -> Callable[[VoidFunction], VoidFunction
                     logging.debug(
                         'Next call of `{}` will be at {}'.format(
                             function.__name__,
-                            datetime.datetime.fromtimestamp(self.last_call_time).isoformat(' ')
+                            datetime.datetime.fromtimestamp(self.last_call_time)
+                            .isoformat(' ')
                         )
                     )
 
@@ -134,19 +140,38 @@ def find_file(name: str, path: str) -> str:
 MAX_FILE_NAME_LEN = os.pathconf(os.getcwd(), 'PC_NAME_MAX')
 
 
+def set_logging_config(base_dir: str, logging_config_path: str, logs_path: str,
+                       disable_existing_loggers=True):
+    logs_dir = os.path.dirname(logs_path)
+    check_dir(base_dir, logs_dir, create=True)
+    abs_log_config_path = os.path.join(base_dir, logging_config_path)
+    abs_logs_path = os.path.join(base_dir, logs_path)
+    logging.config.fileConfig(fname=abs_log_config_path,
+                              defaults={'logfilename': abs_logs_path},
+                              disable_existing_loggers=disable_existing_loggers)
+
+
 def get_normalized_file_name(name: str, ext: str):
     return name[:MAX_FILE_NAME_LEN - len(ext)].replace(os.sep, ' ') + ext
 
 
-def check_dir(path_dir: str, *subdirs):
-    path = path_dir
-    if not os.path.exists(path):
-        os.mkdir(path)
+def check_dir(root: str, *subs, create=False):
+    if not os.path.exists(root):
+        if create:
+            os.mkdir(root)
+        else:
+            err_message = 'Directory {} does not exist.'.format(root)
+            raise ValueError(err_message)
 
-    for subdir in subdirs:
-        path = os.path.join(path, subdir)
+    path = root
+    for sub in subs:
+        path = os.path.join(path, sub)
         if not os.path.exists(path):
-            os.mkdir(path)
+            if create:
+                os.mkdir(path)
+            else:
+                err_message = 'Directory {} does not exist.'.format(root)
+                raise ValueError(err_message)
 
 
 def get_valid_dirs(*dirs) -> List[str]:
@@ -197,7 +222,8 @@ def get_repr_template_by_cls(cls: type) -> str:
     arguments.pop('self')
     cls_repr = '{cls_name}({{}})'.format(cls_name=cls.__name__)
     # '!r' flag forces to get `repr()` of object
-    init_signature = ', '.join('{argument}={{{argument}!r}}'.format(argument=argument) for argument in arguments)
+    init_signature = ', '.join('{argument}={{{argument}!r}}'.format(argument=argument)
+                               for argument in arguments)
     cls_repr = cls_repr.format(init_signature)
     return cls_repr
 
