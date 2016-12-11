@@ -581,8 +581,12 @@ class VKDoc(VKFileAttachable):
     @classmethod
     def getUploadServer_method(cls, dst_type: str):
         if dst_type == 'default':
-            return 'photos.getUploadServer'
+            return 'docs.getUploadServer'
         elif dst_type == 'wall':
-            return 'photos.getWallUploadServer'
+            return 'docs.getWallUploadServer'
         else:
             raise ValueError('Unknown document uploading destination type: {}'.format(dst_type))
+
+    @classmethod
+    def save_method(cls, dst_type: str = None):
+        return 'docs.save'
