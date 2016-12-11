@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Any
 
-from vk_app.attachables import VKObject, VKAttachable
+from vk_app.models.objects import VKObject, VKAttachable
 from vk_app.utils import get_all_subclasses
 
 

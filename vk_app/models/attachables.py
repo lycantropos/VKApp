@@ -4,61 +4,12 @@ import shutil
 from datetime import datetime, time, timedelta
 from typing import List, Dict
 
+from vk_app.models.objects import VKAttachable
 from vk_app.services.loading import download
-from vk_app.utils import check_dir, find_file, get_normalized_file_name, get_repr, obj_to_dict
+from vk_app.utils import check_dir, find_file, get_normalized_file_name
 
-VK_ID_FORMAT = '{owner_id}_{object_id}'
-
-
-class VKObject:
-    """
-    Abstract class for working with VK data types
-
-    more info about `Data types` at https://vk.com/dev/datatypes
-    """
-
-    def __init__(self, owner_id: int, object_id: int):
-        # VK utility fields
-        self.vk_id = VK_ID_FORMAT.format(owner_id=owner_id, object_id=object_id)
-        self.owner_id = owner_id
-        self.object_id = object_id
-
-    def __eq__(self, other):
-        if type(self) is type(other):
-            return self.vk_id == other.vk_id
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self.vk_id)
-
-    def __repr__(self):
-        return get_repr(self)
-
-    @classmethod
-    def from_raw(cls, raw_vk_object: dict) -> type:
-        """Must be overridden by inheritors"""
-
-    def to_dict(self):
-        return obj_to_dict(self)
-
-
-class VKAttachable(VKObject):
-    """
-    Abstract class for working with VK media attachments in wall posts
-
-    more info about `Media Attachments` at https://vk.com/dev/attachments_w
-    """
-
-    @classmethod
-    def key(cls) -> str:
-        """
-        For elements of attachments (such as VK photo, audio objects) should return their key in attachment object
-        e.g. for VK photo object should return 'photo', for VK audio object should return 'audio' and etc.
-        """
+__all__ = ['VKPage', 'VKDoc', 'VKNote', 'VKPoll', 'VKPhotoAlbum',
+           'VKPhoto', 'VKAudio', 'VKVideo']
 
 
 class VKPage(VKAttachable):
@@ -68,9 +19,9 @@ class VKPage(VKAttachable):
     more info about `Page` objects at https://vk.com/dev/page
     """
 
-    def __init__(self, owner_id: int, object_id: int, creator_id: int, title: str, html: str, who_can_view: int,
-                 who_can_edit: int, date_time: datetime, edited_date_time: datetime, views_count: int,
-                 source: str = None):
+    def __init__(self, owner_id: int, object_id: int, creator_id: int, title: str,
+                 html: str, who_can_view: int, who_can_edit: int, date_time: datetime,
+                 edited_date_time: datetime, views_count: int, source: str = None):
         super().__init__(owner_id, object_id)
 
         # VK utility fields
@@ -116,8 +67,8 @@ class VKNote(VKAttachable):
     more info about `Note` objects at https://vk.com/dev/note
     """
 
-    def __init__(self, owner_id: int, object_id: int, title: str, date_time: datetime, comments_count: int,
-                 text: str = None):
+    def __init__(self, owner_id: int, object_id: int, title: str, date_time: datetime,
+                 comments_count: int, text: str = None):
         super().__init__(owner_id, object_id)
 
         # info fields
@@ -151,8 +102,8 @@ class VKPoll(VKAttachable):
     more info about `Poll` objects at https://vk.com/dev/polls.getById
     """
 
-    def __init__(self, owner_id: int, object_id: int, question: str, answers: List[dict], anonymous: bool,
-                 date_time: datetime, votes_count: int):
+    def __init__(self, owner_id: int, object_id: int, question: str, answers: List[dict],
+                 anonymous: bool, date_time: datetime, votes_count: int):
         super().__init__(owner_id, object_id)
 
         # info fields
@@ -237,7 +188,10 @@ class VKFileAttachable(VKAttachable):
     def synchronize(self, path: str, files_paths=None):
         file_name = self.get_file_name()
         if files_paths is not None:
-            old_file_path = next((file_path for file_path in files_paths if file_name in file_path), None)
+            old_file_path = next((file_path
+                                  for file_path in files_paths
+                                  if file_name in file_path),
+                                 None)
         else:
             old_file_path = find_file(file_name, path)
         if old_file_path is not None:
@@ -290,24 +244,26 @@ class VKFileAttachable(VKAttachable):
         """Must be overridden by inheritors"""
 
     @classmethod
-    def identify_getUploadServer_method(cls, dst_type: str) -> str:
+    def getUploadServer_method(cls, dst_type: str) -> str:
         """
         Returns name of VK API method to get URL address of upload server with
 
         more info about VK API methods at https://vk.com/dev/methods
 
-        :param dst_type: specific type of destination if supported. Ex. for class 'VKPhoto':
+        :param dst_type: specific type of destination if supported.
+        Ex. for class 'VKPhoto':
          dst_type='wall'
          to get method name for receiving image upload on community/user wall server URL
         """
 
     @classmethod
-    def identify_save_method(cls, dst_type: str):
+    def save_method(cls, dst_type: str):
         """
         Returns name of VK API method to save VK objects with
 
         more info about VK API methods at https://vk.com/dev/methods
-        :param dst_type: specific type of destination if supported. Ex. for class 'VKPhoto':
+        :param dst_type: specific type of destination if supported.
+        Ex. for class 'VKPhoto':
          dst_type='wall'
          to get method name for image uploading on community/user wall
         """
@@ -324,8 +280,9 @@ class VKPhoto(VKFileAttachable):
     more info about `Photo` objects at https://vk.com/dev/photo
     """
 
-    def __init__(self, owner_id: int, object_id: int, album_id: int, album: str, date_time: datetime,
-                 user_id: int = None, text: str = None, link: str = None):
+    def __init__(self, owner_id: int, object_id: int, album_id: int, album: str,
+                 date_time: datetime, user_id: int = None, text: str = None,
+                 link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # VK utility fields
@@ -381,7 +338,7 @@ class VKPhoto(VKFileAttachable):
         return highest_res_link
 
     @classmethod
-    def identify_getUploadServer_method(cls, dst_type: str) -> str:
+    def getUploadServer_method(cls, dst_type: str) -> str:
         if dst_type == 'default':
             return 'photos.getUploadServer'
         elif dst_type == 'owner':
@@ -400,7 +357,7 @@ class VKPhoto(VKFileAttachable):
             raise ValueError('Unknown photo uploading destination type: {}'.format(dst_type))
 
     @classmethod
-    def identify_save_method(cls, dst_type: str):
+    def save_method(cls, dst_type: str):
         if dst_type == 'default':
             return 'photos.save'
         elif dst_type == 'owner':
@@ -435,8 +392,9 @@ class VKAudio(VKFileAttachable):
     """
     FILE_NAME_FORMAT = '{self.artist} - {self.title}'
 
-    def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time, date_time: datetime,
-                 genre: str = None, lyrics_id: int = None, link: str = None):
+    def __init__(self, owner_id: int, object_id: int, artist: str, title: str, duration: time,
+                 date_time: datetime, genre: str = None, lyrics_id: int = None,
+                 link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # info fields
@@ -476,11 +434,11 @@ class VKAudio(VKFileAttachable):
         )
 
     @classmethod
-    def identify_getUploadServer_method(cls, dst_type: str = None):
+    def getUploadServer_method(cls, dst_type: str = None):
         return 'audio.getUploadServer'
 
     @classmethod
-    def identify_save_method(cls, dst_type: str = None):
+    def save_method(cls, dst_type: str = None):
         return 'audio.save'
 
 
@@ -516,8 +474,10 @@ class VKVideo(VKFileAttachable):
     more info about `Video` objects at https://vk.com/dev/video_object
     """
 
-    def __init__(self, owner_id: int, object_id: int, title: str, description: str, duration: time, date_time: datetime,
-                 views_count: int, adding_date: datetime = None, player_link: str = None, link: str = None):
+    def __init__(self, owner_id: int, object_id: int, title: str, description: str,
+                 duration: time, date_time: datetime, views_count: int,
+                 adding_date: datetime = None, player_link: str = None,
+                 link: str = None):
         super().__init__(owner_id, object_id, link)
 
         # info fields
@@ -570,11 +530,11 @@ class VKVideo(VKFileAttachable):
         return dict(link=link, player_link=player_link)
 
     @classmethod
-    def identify_getUploadServer_method(cls, dst_type: str = None):
+    def getUploadServer_method(cls, dst_type: str = None):
         return 'video.save'
 
     @classmethod
-    def identify_save_method(cls, dst_type: str = None):
+    def save_method(cls, dst_type: str = None):
         return 'video.save'
 
 
@@ -585,7 +545,8 @@ class VKDoc(VKFileAttachable):
     more info about `Doc` objects at https://vk.com/dev/doc
     """
 
-    def __init__(self, owner_id: int, object_id: int, title: str, size: int, ext: str, link: str):
+    def __init__(self, owner_id: int, object_id: int, title: str, size: int, ext: str,
+                 link: str):
         super().__init__(owner_id, object_id, link)
 
         # info fields
@@ -618,7 +579,7 @@ class VKDoc(VKFileAttachable):
         )
 
     @classmethod
-    def identify_getUploadServer_method(cls, dst_type: str):
+    def getUploadServer_method(cls, dst_type: str):
         if dst_type == 'default':
             return 'photos.getUploadServer'
         elif dst_type == 'wall':
